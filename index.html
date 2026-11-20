@@ -1,0 +1,2544 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="artifact-type" content="dashboard">
+  <meta name="design-style" content="nocturne">
+  <title>両京十五日 — 全16名・勢力相関図インタラクティブ図鑑</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&family=EB+Garamond:ital,wght@0,400..700;1,400..600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@1.43.0/dist/umd/lucide.min.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+
+      /* Nocturne midnight surfaces */
+      --background: #0a101d;
+      --surface-container-low: #0e1626;
+      --surface-container: #111b2e;
+      --surface-container-high: #17243c;
+
+      /* Typography colors */
+      --on-surface: #f2ece1;
+      --on-surface-variant: #9ba8bf;
+
+      /* Borders */
+      --outline: #384d73;
+      --outline-variant: #21304d;
+
+      /* Primary & Semantic accents */
+      --primary: #dfaa5b;
+      --on-primary: #0a101d;
+      --primary-container: #2b261c;
+      --on-primary-container: #f5dcb0;
+      --secondary: #687a99;
+      --tertiary: #7cc4e8;
+      --vermilion: #e05344;
+      --error: #f27474;
+      --on-error: #1a0606;
+      --positive: #52d19c;
+      --warning: #dfaa5b;
+      --focus: #dfaa5b;
+
+      /* Faction zone colors */
+      --faction-main: #dfaa5b;
+      --faction-main-bg: rgba(223, 170, 91, 0.08);
+      --faction-main-border: rgba(223, 170, 91, 0.36);
+
+      --faction-wu: #64a8e8;
+      --faction-wu-bg: rgba(100, 168, 232, 0.08);
+      --faction-wu-border: rgba(100, 168, 232, 0.36);
+
+      --faction-jinling: #b87ee8;
+      --faction-jinling-bg: rgba(184, 126, 232, 0.08);
+      --faction-jinling-border: rgba(184, 126, 232, 0.36);
+
+      --faction-beijing: #e66868;
+      --faction-beijing-bg: rgba(230, 104, 104, 0.08);
+      --faction-beijing-border: rgba(230, 104, 104, 0.38);
+
+      --faction-jianghu: #4bc99f;
+      --faction-jianghu-bg: rgba(75, 201, 159, 0.08);
+      --faction-jianghu-border: rgba(75, 201, 159, 0.36);
+
+      /* Edge category colors */
+      --edge-trust: #dfaa5b;
+      --edge-hostile: #e05344;
+      --edge-conspiracy: #b87ee8;
+      --edge-mission: #7cc4e8;
+      --data-context: #4a5d80;
+
+      /* Fonts */
+      --font-headline: 'Noto Serif JP', 'EB Garamond', serif;
+      --font-body: 'Noto Sans JP', sans-serif;
+      --font-label: 'JetBrains Mono', 'Noto Sans JP', monospace;
+
+      /* Type scale (Dashboard) */
+      --display-size: clamp(1.5rem, 1.2rem + 1.1vw, 2.05rem);
+      --headline-size: clamp(1.125rem, 1.02rem + 0.45vw, 1.375rem);
+      --subhead-size: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+      --body-size: clamp(0.9375rem, 0.9rem + 0.12vw, 1rem);
+      --label-size: 0.75rem;
+
+      /* Spacing scale */
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2.5rem;
+      --space-2xl: 4rem;
+
+      /* Shape & effects */
+      --rounded: 0.25rem;
+      --rounded-lg: 0.5rem;
+      --rounded-full: 9999px;
+      --hairline: 1px solid var(--outline-variant);
+      --hairline-strong: 1px solid var(--outline);
+      --panel-highlight: inset 0 1px 0 rgba(242, 236, 225, 0.06);
+      --brass-glow: radial-gradient(circle at 86% 10%, rgba(223, 170, 91, 0.11), transparent 46%),
+                    radial-gradient(circle at 12% 85%, rgba(224, 83, 68, 0.07), transparent 42%);
+      --sky-tint: color-mix(in srgb, var(--tertiary) 12%, transparent);
+      --brass-tint: color-mix(in srgb, var(--primary) 15%, transparent);
+      --vermilion-tint: color-mix(in srgb, var(--vermilion) 15%, transparent);
+      --node-shadow: 0 8px 24px rgba(5, 8, 16, 0.65);
+      --modal-backdrop: rgba(6, 10, 19, 0.82);
+      --canvas-grid-dot: rgba(155, 168, 191, 0.12);
+      --edge-label-bg: rgba(10, 16, 29, 0.94);
+
+      /* Motion */
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+      --dur-micro: 120ms;
+      --dur-short: 220ms;
+      --dur-long: 380ms;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow-x: clip;
+      background-color: var(--background);
+      color: var(--on-surface);
+      font-family: var(--font-body);
+      font-size: var(--body-size);
+      line-height: 1.55;
+      min-height: 100vh;
+    }
+
+    header {
+      position: static !important;
+    }
+
+    button, input, select, textarea {
+      font-family: inherit;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    /* App Shell */
+    .app-shell {
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
+      min-height: 100vh;
+      background-color: var(--background);
+      background-image: var(--brass-glow);
+    }
+
+    .app-shell.pseudo-fullscreen {
+      position: fixed;
+      inset: 0;
+      z-index: 900;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Header */
+    .hero-header {
+      border-bottom: var(--hairline);
+      padding: var(--space-md) var(--space-lg);
+      background: linear-gradient(180deg, var(--surface-container-low) 0%, var(--background) 100%);
+    }
+
+    .header-inner {
+      max-width: 1680px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: var(--space-md);
+    }
+
+    .title-block {
+      min-width: 0;
+    }
+
+    .epoch-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-sm);
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      color: var(--primary);
+      background: var(--brass-tint);
+      border: 1px solid var(--faction-main-border);
+      border-radius: var(--rounded);
+      padding: var(--space-xs) var(--space-sm);
+      margin-bottom: var(--space-xs);
+    }
+
+    .seal-stamp {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 var(--space-xs);
+      border: 1px solid var(--vermilion);
+      color: var(--vermilion);
+      background: var(--vermilion-tint);
+      border-radius: 2px;
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: var(--label-size);
+    }
+
+    h1.main-title {
+      margin: 0;
+      font-family: var(--font-headline);
+      font-size: var(--display-size);
+      font-weight: 600;
+      line-height: 1.15;
+      color: var(--on-surface);
+    }
+
+    h1.main-title .accent-word {
+      color: var(--primary);
+      font-weight: 500;
+    }
+
+    .subtitle {
+      margin: var(--space-xs) 0 0;
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+      max-width: 68ch;
+    }
+
+    .kpi-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      align-items: stretch;
+    }
+
+    .kpi-card {
+      background: var(--surface-container);
+      border: var(--hairline);
+      box-shadow: var(--panel-highlight);
+      border-radius: var(--rounded);
+      padding: var(--space-xs) var(--space-md);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 96px;
+    }
+
+    .kpi-label {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+    }
+
+    .kpi-val {
+      font-family: var(--font-headline);
+      font-size: var(--headline-size);
+      font-weight: 600;
+      color: var(--primary);
+      font-variant-numeric: tabular-nums;
+      line-height: 1.2;
+    }
+
+    /* Control Bar */
+    .control-bar {
+      border-bottom: var(--hairline);
+      background: var(--surface-container-low);
+      padding: var(--space-sm) var(--space-lg);
+    }
+
+    .control-inner {
+      max-width: 1680px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: var(--space-md);
+    }
+
+    .filter-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+      align-items: center;
+    }
+
+    .filter-btn {
+      min-height: 44px;
+      padding: var(--space-xs) var(--space-md);
+      border-radius: var(--rounded);
+      border: var(--hairline-strong);
+      background: var(--surface-container);
+      color: var(--on-surface);
+      font-size: var(--label-size);
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      transition: background-color var(--dur-micro) var(--ease-out),
+                  box-shadow var(--dur-micro) var(--ease-out),
+                  color var(--dur-micro) var(--ease-out);
+    }
+
+    .filter-btn:hover {
+      background: var(--surface-container-high);
+    }
+
+    .filter-btn.active {
+      background: var(--primary);
+      color: var(--on-primary);
+      border-color: var(--primary);
+      font-weight: 700;
+    }
+
+    .filter-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: var(--rounded-full);
+      flex-shrink: 0;
+    }
+
+    .filter-btn.active .filter-dot {
+      box-shadow: 0 0 0 2px var(--on-primary);
+    }
+
+    .utility-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: var(--space-sm);
+    }
+
+    .search-field {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .search-label {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+    }
+
+    .search-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-input {
+      height: 44px;
+      min-width: 210px;
+      background: var(--background);
+      color: var(--on-surface);
+      border: var(--hairline-strong);
+      border-radius: var(--rounded);
+      padding: var(--space-xs) var(--space-md);
+      font-size: var(--label-size);
+    }
+
+    .search-input::placeholder {
+      color: var(--on-surface-variant);
+      opacity: 0.7;
+    }
+
+    .tool-btn {
+      height: 44px;
+      min-width: 44px;
+      padding: 0 var(--space-sm);
+      background: var(--surface-container);
+      color: var(--on-surface);
+      border: var(--hairline-strong);
+      border-radius: var(--rounded);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-xs);
+      font-size: var(--label-size);
+      transition: background-color var(--dur-micro) var(--ease-out),
+                  color var(--dur-micro) var(--ease-out);
+    }
+
+    .tool-btn:hover {
+      background: var(--surface-container-high);
+      color: var(--primary);
+    }
+
+    .tool-btn.active-toggle {
+      background: var(--brass-tint);
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    /* Main Workspace Grid */
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 370px;
+      min-height: 680px;
+      height: calc(100vh - 185px);
+      max-height: 1100px;
+    }
+
+    .app-shell.pseudo-fullscreen .workspace {
+      height: calc(100vh - 150px);
+      max-height: none;
+    }
+
+    /* Graph Canvas Well */
+    .graph-stage {
+      position: relative;
+      background-color: var(--background);
+      background-image: radial-gradient(var(--canvas-grid-dot) 1px, transparent 1px);
+      background-size: 28px 28px;
+      overflow: hidden;
+      min-height: 540px;
+      touch-action: none;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .graph-stage.panning {
+      cursor: grabbing;
+    }
+
+    .canvas-world {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1400px;
+      height: 940px;
+      transform-origin: 0 0;
+      will-change: transform;
+    }
+
+    /* Faction Zone Plates */
+    .zone-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .faction-zone {
+      position: absolute;
+      border-radius: var(--rounded-lg);
+      border: 1px dashed var(--outline);
+      transition: opacity var(--dur-short) var(--ease-out);
+    }
+
+    .faction-zone.dimmed {
+      opacity: 0.16;
+    }
+
+    .zone-label {
+      position: absolute;
+      top: var(--space-sm);
+      left: var(--space-md);
+      font-family: var(--font-headline);
+      font-size: var(--label-size);
+      font-weight: 600;
+      padding: 2px var(--space-sm);
+      border-radius: var(--rounded);
+      background: var(--background);
+      border: var(--hairline);
+    }
+
+    /* SVG Edges Layer */
+    .edges-svg {
+      position: absolute;
+      inset: 0;
+      width: 1400px;
+      height: 940px;
+      overflow: visible;
+      pointer-events: none;
+    }
+
+    .edge-group {
+      pointer-events: stroke;
+      cursor: pointer;
+      transition: opacity var(--dur-short) var(--ease-out);
+    }
+
+    .edge-group.dimmed {
+      opacity: 0.12;
+    }
+
+    .edge-hit-path {
+      fill: none;
+      stroke: transparent;
+      stroke-width: 16;
+    }
+
+    .edge-path {
+      fill: none;
+      stroke-width: 2;
+      transition: stroke-width var(--dur-micro) var(--ease-out),
+                  filter var(--dur-micro) var(--ease-out);
+    }
+
+    .edge-group.highlighted .edge-path,
+    .edge-group:hover .edge-path {
+      stroke-width: 3.2;
+    }
+
+    .edge-label-pill {
+      pointer-events: auto;
+      cursor: pointer;
+      transition: opacity var(--dur-short) var(--ease-out);
+    }
+
+    .edge-label-bg {
+      fill: var(--edge-label-bg);
+      stroke-width: 1;
+    }
+
+    .edge-label-text {
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 500;
+      fill: var(--on-surface);
+      text-anchor: middle;
+      dominant-baseline: central;
+    }
+
+    /* Nodes Layer */
+    .nodes-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .char-node {
+      position: absolute;
+      width: 174px;
+      min-height: 92px;
+      transform: translate(-50%, -50%);
+      background: var(--surface-container);
+      border: 1.5px solid var(--outline-variant);
+      box-shadow: var(--panel-highlight), var(--node-shadow);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-sm) var(--space-md);
+      pointer-events: auto;
+      cursor: grab;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: var(--space-xs);
+      transition: opacity var(--dur-short) var(--ease-out),
+                  box-shadow var(--dur-micro) var(--ease-out),
+                  background-color var(--dur-micro) var(--ease-out);
+    }
+
+    .char-node:hover {
+      background: var(--surface-container-high);
+      z-index: 20;
+    }
+
+    .char-node.dragging {
+      cursor: grabbing;
+      z-index: 40;
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.8), 0 0 0 2px var(--primary);
+    }
+
+    .char-node.dimmed {
+      opacity: 0.16;
+    }
+
+    .char-node.selected {
+      background: var(--surface-container-high);
+      z-index: 30;
+      box-shadow: 0 0 0 2px var(--primary), 0 0 28px rgba(223, 170, 91, 0.25);
+    }
+
+    .char-node.connected {
+      z-index: 25;
+      background: var(--surface-container-high);
+    }
+
+    .node-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-xs);
+    }
+
+    .node-faction-pill {
+      font-family: var(--font-label);
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: var(--rounded);
+      white-space: nowrap;
+    }
+
+    .node-degree {
+      font-family: var(--font-label);
+      font-size: 10px;
+      color: var(--on-surface-variant);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .node-name-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: var(--space-xs);
+    }
+
+    .node-name {
+      font-family: var(--font-headline);
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: var(--on-surface);
+      line-height: 1.2;
+    }
+
+    .node-actor {
+      font-size: 11px;
+      color: var(--primary);
+      white-space: nowrap;
+    }
+
+    .node-role {
+      font-size: 11px;
+      color: var(--on-surface-variant);
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Canvas Floating HUD (Legend + Zoom Status) */
+    .canvas-hud-bottom {
+      position: absolute;
+      left: var(--space-md);
+      right: var(--space-md);
+      bottom: var(--space-md);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      pointer-events: none;
+    }
+
+    .legend-card {
+      pointer-events: auto;
+      background: rgba(14, 22, 38, 0.92);
+      border: var(--hairline);
+      border-radius: var(--rounded);
+      padding: var(--space-xs) var(--space-md);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-md);
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-line {
+      width: 20px;
+      height: 2px;
+      display: inline-block;
+    }
+
+    .legend-line.dashed {
+      background: repeating-linear-gradient(90deg, currentColor 0 5px, transparent 5px 9px);
+    }
+
+    .hud-hint {
+      pointer-events: auto;
+      background: rgba(14, 22, 38, 0.92);
+      border: var(--hairline);
+      border-radius: var(--rounded);
+      padding: var(--space-xs) var(--space-sm);
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Right Side Inspector Panel */
+    .inspector-panel {
+      border-left: var(--hairline);
+      background: var(--surface-container-low);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: var(--space-lg);
+      gap: var(--space-md);
+    }
+
+    .inspector-empty {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    .inspector-section-title {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      color: var(--primary);
+      border-bottom: var(--hairline);
+      padding-bottom: var(--space-xs);
+      margin: 0;
+    }
+
+    .roster-quick-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-xs);
+    }
+
+    .roster-chip {
+      min-height: 44px;
+      padding: var(--space-xs) var(--space-sm);
+      background: var(--surface-container);
+      border: var(--hairline);
+      border-radius: var(--rounded);
+      color: var(--on-surface);
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      transition: background-color var(--dur-micro) var(--ease-out);
+    }
+
+    .roster-chip:hover {
+      background: var(--surface-container-high);
+    }
+
+    .roster-chip-name {
+      font-family: var(--font-headline);
+      font-weight: 600;
+      font-size: 0.9375rem;
+    }
+
+    .roster-chip-sub {
+      font-size: 11px;
+      color: var(--on-surface-variant);
+    }
+
+    /* Selected Character Card inside Inspector */
+    .detail-card {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    .detail-header {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+      border-bottom: var(--hairline);
+      padding-bottom: var(--space-md);
+    }
+
+    .detail-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+
+    .detail-name {
+      margin: 0;
+      font-family: var(--font-headline);
+      font-size: 1.625rem;
+      font-weight: 700;
+      color: var(--on-surface);
+      line-height: 1.2;
+    }
+
+    .detail-reading {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      color: var(--tertiary);
+    }
+
+    .detail-cast {
+      font-size: var(--body-size);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .detail-bio {
+      margin: 0;
+      font-size: 0.9375rem;
+      color: var(--on-surface);
+      line-height: 1.65;
+    }
+
+    .keyword-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+    }
+
+    .keyword-tag {
+      font-family: var(--font-label);
+      font-size: 11px;
+      padding: 2px var(--space-sm);
+      border-radius: var(--rounded);
+      background: var(--sky-tint);
+      color: var(--tertiary);
+      border: 1px solid color-mix(in srgb, var(--tertiary) 35%, transparent);
+    }
+
+    .rel-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    .rel-item-btn {
+      width: 100%;
+      min-height: 44px;
+      background: var(--surface-container);
+      border: var(--hairline);
+      border-radius: var(--rounded);
+      padding: var(--space-sm) var(--space-md);
+      color: var(--on-surface);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 3px;
+      text-align: left;
+      transition: background-color var(--dur-micro) var(--ease-out);
+    }
+
+    .rel-item-btn:hover {
+      background: var(--surface-container-high);
+    }
+
+    .rel-item-top {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+
+    .rel-target {
+      font-family: var(--font-headline);
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .rel-direction {
+      font-family: var(--font-label);
+      font-size: 11px;
+      padding: 1px 6px;
+      border-radius: var(--rounded);
+    }
+
+    .rel-label-desc {
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+    }
+
+    .primary-action-btn {
+      min-height: 44px;
+      width: 100%;
+      padding: var(--space-sm) var(--space-md);
+      background: var(--primary);
+      color: var(--on-primary);
+      border: 1px solid var(--primary);
+      border-radius: var(--rounded);
+      font-weight: 700;
+      font-size: var(--body-size);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-xs);
+      transition: opacity var(--dur-micro) var(--ease-out);
+    }
+
+    .primary-action-btn:hover {
+      opacity: 0.92;
+    }
+
+    .secondary-action-btn {
+      min-height: 44px;
+      padding: var(--space-xs) var(--space-md);
+      background: transparent;
+      color: var(--on-surface);
+      border: var(--hairline-strong);
+      border-radius: var(--rounded);
+      font-size: var(--label-size);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-xs);
+    }
+
+    .secondary-action-btn:hover {
+      background: var(--surface-container-high);
+    }
+
+    /* Detail Popup Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: var(--modal-backdrop);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-lg);
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal-dialog {
+      width: 100%;
+      max-width: 720px;
+      max-height: 88vh;
+      overflow-y: auto;
+      background: var(--surface-container);
+      border: var(--hairline-strong);
+      box-shadow: var(--panel-highlight), 0 24px 64px rgba(0, 0, 0, 0.85);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-xl);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-lg);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-md);
+      border-bottom: var(--hairline);
+      padding-bottom: var(--space-md);
+    }
+
+    .modal-title {
+      margin: var(--space-xs) 0 0;
+      font-family: var(--font-headline);
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--on-surface);
+    }
+
+    .modal-close-btn {
+      min-width: 44px;
+      min-height: 44px;
+      background: var(--surface-container-high);
+      border: var(--hairline-strong);
+      color: var(--on-surface);
+      border-radius: var(--rounded);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-close-btn:hover {
+      color: var(--primary);
+    }
+
+    .modal-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-md);
+    }
+
+    .modal-box {
+      background: var(--background);
+      border: var(--hairline);
+      border-radius: var(--rounded);
+      padding: var(--space-md);
+    }
+
+    .modal-box-label {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      color: var(--primary);
+      margin-bottom: var(--space-xs);
+    }
+
+    .modal-box-value {
+      font-size: var(--body-size);
+      color: var(--on-surface);
+      margin: 0;
+    }
+
+    .source-footer {
+      border-top: var(--hairline);
+      background: var(--surface-container-low);
+      padding: var(--space-sm) var(--space-lg);
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+
+    /* Inline status toast */
+    .status-toast {
+      position: fixed;
+      top: var(--space-md);
+      right: var(--space-md);
+      z-index: 1100;
+      background: var(--surface-container-high);
+      border: 1px solid var(--primary);
+      color: var(--on-surface);
+      padding: var(--space-xs) var(--space-md);
+      border-radius: var(--rounded);
+      font-size: var(--label-size);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-6px);
+      transition: opacity var(--dur-short) var(--ease-out), transform var(--dur-short) var(--ease-out);
+    }
+
+    .status-toast.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Responsive Breakpoints */
+    @media (max-width: 980px) {
+      .workspace {
+        grid-template-columns: minmax(0, 1fr);
+        height: auto;
+        max-height: none;
+      }
+
+      .graph-stage {
+        height: 62vh;
+        min-height: 440px;
+      }
+
+      .inspector-panel {
+        border-left: none;
+        border-top: var(--hairline);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .hero-header, .control-bar, .inspector-panel {
+        padding: var(--space-md);
+      }
+
+      .modal-dialog {
+        padding: var(--space-lg);
+      }
+
+      .modal-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .roster-quick-list {
+        grid-template-columns: 1fr;
+      }
+
+      .kpi-strip {
+        width: 100%;
+      }
+
+      .kpi-card {
+        flex: 1 1 80px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app-shell" class="app-shell">
+    <header class="hero-header">
+      <div class="header-inner">
+        <div class="title-block">
+          <div class="epoch-tag">
+            <span class="seal-stamp">洪熙元年</span>
+            <span>南京金陵 — 北京・二千余里十五日の死闘</span>
+          </div>
+          <h1 class="main-title">両京十五日 <span class="accent-word">全16名・勢力相関図</span></h1>
+          <p class="subtitle">虎硫薬による宝船爆破事件から始まる皇太子・朱瞻基の帰京行。5大勢力・16名の登場人物と24本の因縁・密計を視覚的に探索できます。</p>
+        </div>
+
+        <div class="kpi-strip">
+          <div class="kpi-card">
+            <span class="kpi-label">収録人物</span>
+            <span class="kpi-val" id="kpi-nodes">16名</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">関係線</span>
+            <span class="kpi-val" id="kpi-edges">24本</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">勢力区分</span>
+            <span class="kpi-val">5大勢力</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="control-bar" aria-label="勢力フィルターと表示操作">
+      <div class="control-inner">
+        <div class="filter-group" id="faction-filters" role="group" aria-label="勢力グループフィルター">
+          <button type="button" class="filter-btn active" data-faction="all" onclick="setFactionFilter('all')">
+            すべて (16)
+          </button>
+          <button type="button" class="filter-btn" data-faction="main" onclick="setFactionFilter('main')">
+            <span class="filter-dot" style="background-color: var(--faction-main);"></span>主要一行 (4)
+          </button>
+          <button type="button" class="filter-btn" data-faction="wu" onclick="setFactionFilter('wu')">
+            <span class="filter-dot" style="background-color: var(--faction-wu);"></span>呉家 (2)
+          </button>
+          <button type="button" class="filter-btn" data-faction="jinling" onclick="setFactionFilter('jinling')">
+            <span class="filter-dot" style="background-color: var(--faction-jinling);"></span>金陵官府 (4)
+          </button>
+          <button type="button" class="filter-btn" data-faction="beijing" onclick="setFactionFilter('beijing')">
+            <span class="filter-dot" style="background-color: var(--faction-beijing);"></span>北京朝廷 (2)
+          </button>
+          <button type="button" class="filter-btn" data-faction="jianghu" onclick="setFactionFilter('jianghu')">
+            <span class="filter-dot" style="background-color: var(--faction-jianghu);"></span>江湖運河 (4)
+          </button>
+        </div>
+
+        <div class="utility-group">
+          <div class="search-field">
+            <label for="char-search" class="search-label">人物・俳優検索</label>
+            <div class="search-input-wrap">
+              <input id="char-search" class="search-input" type="search" placeholder="例：朱瞻基 / 成毅 / 鉄盟" oninput="handleSearchInput(this.value)">
+            </div>
+          </div>
+
+          <button type="button" class="tool-btn" id="btn-toggle-labels" onclick="toggleEdgeLabels()" aria-pressed="true" title="関係ラベルの表示切替">
+            <i data-lucide="tag" style="width:16px;height:16px;"></i>
+            <span>関係ラベル</span>
+          </button>
+          <button type="button" class="tool-btn" onclick="zoomBy(0.15)" aria-label="拡大" title="拡大">
+            <i data-lucide="zoom-in" style="width:16px;height:16px;"></i>
+          </button>
+          <button type="button" class="tool-btn" onclick="zoomBy(-0.15)" aria-label="縮小" title="縮小">
+            <i data-lucide="zoom-out" style="width:16px;height:16px;"></i>
+          </button>
+          <button type="button" class="tool-btn" onclick="fitGraphToStage()" aria-label="全体表示" title="全体フィット">
+            <i data-lucide="maximize-2" style="width:16px;height:16px;"></i>
+            <span>全体</span>
+          </button>
+          <button type="button" class="tool-btn" onclick="resetGraphLayout(this)" aria-label="配置リセット" title="配置・選択を初期状態に戻す">
+            <i data-lucide="rotate-ccw" style="width:16px;height:16px;"></i>
+            <span>リセット</span>
+          </button>
+          <button type="button" class="tool-btn" id="btn-fullscreen" onclick="toggleFullscreen()" aria-label="全画面表示" title="全画面表示切替">
+            <i data-lucide="expand" style="width:16px;height:16px;"></i>
+            <span>全画面</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <main class="workspace">
+      <div id="graph-stage" class="graph-stage" aria-label="人物相関図キャンバス">
+        <div id="canvas-world" class="canvas-world">
+          <div id="zone-layer" class="zone-layer" aria-hidden="true"></div>
+          <svg id="edges-svg" class="edges-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 940">
+            <defs id="svg-defs"></defs>
+            <g id="edges-group"></g>
+            <g id="edge-labels-group"></g>
+          </svg>
+          <div id="nodes-layer" class="nodes-layer"></div>
+        </div>
+
+        <div class="canvas-hud-bottom">
+          <div class="legend-card" aria-label="関係線の凡例">
+            <span class="legend-item">
+              <span class="legend-line" style="color: var(--edge-trust); background: var(--edge-trust);"></span>
+              信頼・協力・家族
+            </span>
+            <span class="legend-item">
+              <span class="legend-line" style="color: var(--edge-hostile); background: var(--edge-hostile);"></span>
+              暗殺・復讐・敵対・追跡
+            </span>
+            <span class="legend-item">
+              <span class="legend-line dashed" style="color: var(--edge-conspiracy);"></span>
+              結託・共謀・因縁
+            </span>
+            <span class="legend-item">
+              <span class="legend-line" style="color: var(--edge-mission); background: var(--edge-mission);"></span>
+              密命・献上・同行
+            </span>
+          </div>
+          <div class="hud-hint" id="zoom-readout">倍率 100% ・ ノードはドラッグ移動可能</div>
+        </div>
+      </div>
+
+      <aside class="inspector-panel" id="inspector-panel" aria-label="人物詳細インスペクター">
+        <!-- Populated dynamically -->
+      </aside>
+    </main>
+
+    <footer class="source-footer">
+      <span>出典構成：『両京十五日』劇中資料（第1話〜第4話脚本記録：洪熙元年・金陵宝船爆破〜密道脱出）およびキャスト設定</span>
+      <span>操作：人物クリックで関係ハイライト / ドラッグで位置調整 / ホイール・ピンチで拡大縮小 / 関係線クリックで詳細確認</span>
+    </footer>
+  </div>
+
+  <div id="detail-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-char-name">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div>
+          <span id="modal-faction-badge" class="node-faction-pill"></span>
+          <h2 id="modal-char-name" class="modal-title"></h2>
+          <div id="modal-char-sub" class="detail-reading"></div>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeDetailModal()" aria-label="詳細ポップアップを閉じる">
+          <i data-lucide="x" style="width:20px;height:20px;"></i>
+        </button>
+      </div>
+
+      <div class="modal-grid">
+        <div class="modal-box">
+          <div class="modal-box-label">配役（キャスト）</div>
+          <p id="modal-actor" class="modal-box-value"></p>
+        </div>
+        <div class="modal-box">
+          <div class="modal-box-label">官職・立場・異名</div>
+          <p id="modal-role" class="modal-box-value"></p>
+        </div>
+      </div>
+
+      <div class="modal-box">
+        <div class="modal-box-label">人物像・劇中の動向</div>
+        <p id="modal-bio" class="modal-box-value" style="line-height:1.7;"></p>
+      </div>
+
+      <div>
+        <div class="modal-box-label">キーワード・象徴アイテム</div>
+        <div id="modal-keywords" class="keyword-list"></div>
+      </div>
+
+      <div>
+        <div class="modal-box-label">直接の関係人物一覧</div>
+        <div id="modal-rels" class="rel-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="status-toast" class="status-toast" role="status" aria-live="polite"></div>
+
+  <api-shim></api-shim>
+  <script>
+    const FACTIONS = {
+      main: {
+        id: `main`,
+        name: `主要一行（運命を共にする4人）`,
+        short: `主要一行`,
+        colorVar: `--faction-main`,
+        bgVar: `--faction-main-bg`,
+        borderVar: `--faction-main-border`
+      },
+      wu: {
+        id: `wu`,
+        name: `呉家（応天府捕快一家）`,
+        short: `呉家`,
+        colorVar: `--faction-wu`,
+        bgVar: `--faction-wu-bg`,
+        borderVar: `--faction-wu-border`
+      },
+      jinling: {
+        id: `jinling`,
+        name: `金陵の宮廷・官府`,
+        short: `金陵官府`,
+        colorVar: `--faction-jinling`,
+        bgVar: `--faction-jinling-bg`,
+        borderVar: `--faction-jinling-border`
+      },
+      beijing: {
+        id: `beijing`,
+        name: `朝廷・皇族（北京側）`,
+        short: `北京朝廷`,
+        colorVar: `--faction-beijing`,
+        bgVar: `--faction-beijing-bg`,
+        borderVar: `--faction-beijing-border`
+      },
+      jianghu: {
+        id: `jianghu`,
+        name: `運河・江湖・各勢力`,
+        short: `江湖運河`,
+        colorVar: `--faction-jianghu`,
+        bgVar: `--faction-jianghu-bg`,
+        borderVar: `--faction-jianghu-border`
+      }
+    };
+
+    const ZONE_PLATES = [
+      { id: `beijing`, label: `北京朝廷・皇族`, x: 110, y: 48, w: 500, h: 195 },
+      { id: `main`, label: `主要一行（運命を共にする4人）`, x: 400, y: 270, w: 460, h: 420 },
+      { id: `wu`, label: `呉家（応天府捕快一家）`, x: 75, y: 455, w: 280, h: 410 },
+      { id: `jinling`, label: `金陵の宮廷・官府`, x: 920, y: 75, w: 390, h: 635 },
+      { id: `jianghu`, label: `運河・江湖・各勢力`, x: 405, y: 725, w: 895, h: 175 }
+    ];
+
+    const CHARACTERS = [
+      {
+        id: `zhu_zhanji`,
+        name: `朱瞻基`,
+        reading: `ジュー・ジャンジー / Zhu Zhanji`,
+        actor: `成毅（チョン・イー）`,
+        faction: `main`,
+        role: `明の皇太子（東宮）`,
+        shortRole: `明の皇太子・爆破を生き延び帰京を目指す`,
+        bio: `洪熙元年、遷都をめぐる朝廷の思惑と地震に揺れる金陵へ南下した明の皇太子。揚州の漕商・汪極が献上した2000料の宝船に乗り換えた直後、宮中から流出した「虎硫薬」による爆破テロに遭う。当初は闘蟋（コオロギ「賽子龍」）に興じる気ままな一面を見せるも、玄津橋の襲撃と皇宮での毒殺未遂を潜り抜け、袁仲達から建文帝が用いた密道と北京からの密書を託されて、十五日以内の北京帰還を決意する。`,
+        keywords: [`虎硫薬の爆破`, `賽子龍（闘蟋）`, `惟精惟一の玉佩`, `玄津橋`, `天子皮弁と密道`],
+        x: 685,
+        y: 380
+      },
+      {
+        id: `wu_dingyuan`,
+        name: `呉定縁`,
+        reading: `ウー・ディンユエン / Wu Dingyuan`,
+        actor: `林更新（ケニー・リン）`,
+        faction: `main`,
+        role: `応天府快班の捕吏（異名：篾篙子）`,
+        shortRole: `応天府捕吏・「篾篙子」と揶揄されるが太子を救う`,
+        bio: `応天府総捕頭・呉不平の息子。周囲からは「篾篙子（役立たずの竹竿）」と軽んじられ、「保命と金儲け」が信条の世渡り上手を装っている。扇骨台での任務中に宝船爆破に巻き込まれ、正体を知らぬまま朱瞻基を川から救い出し、錦衣衛へ連行して手柄にしようとしたことから運命が一変。于謙から銀300両の報酬を引き出しつつ事件の核心に迫るが、父・不平と「鉄盟」との不可解な繋がりを知り葛藤を深める。`,
+        keywords: [`扇骨台での救命`, `銀三百両の契約`, `靴底の刃の見抜き`, `鉄盟との対峙`],
+        x: 685,
+        y: 590
+      },
+      {
+        id: `yu_qian`,
+        name: `于謙`,
+        reading: `ユー・チエン / Yu Qian`,
+        actor: `呉幸鍵（ウー・シンジエン）`,
+        faction: `main`,
+        role: `行人司行人 → 右春坊右司直郎`,
+        shortRole: `大義に厚き若き俊英官吏・太子から令牌を託される`,
+        bio: `永楽十九年の進士。殿試で太宗皇帝に見えた記憶と「惟精惟一」の玉佩を手掛かりに、錦衣衛へ連行されてきた朱瞻基の正体を即座に見抜いた若き剛直の官吏。金陵で誰も信じられぬ状況に置かれた太子から厚い信任を受け、右春坊右司直郎へ抜擢されて鄭和の令牌を託される。実直すぎて融通が利かない面もあるが、呉定縁との凸凹コンビで郭芝閔の死と鉄盟の陰謀を追う。`,
+        keywords: [`永楽十九年進士`, `鄭和の令牌`, `右春坊右司直郎`, `大義と忠誠`],
+        x: 500,
+        y: 445
+      },
+      {
+        id: `su_jingxi`,
+        name: `蘇荊渓`,
+        reading: `スー・ジンシー / Su Jingxi`,
+        actor: `姜珮瑶（ジャン・ペイヤオ）`,
+        faction: `main`,
+        role: `揚州出身の女医（普済医館）`,
+        shortRole: `親友の仇・朱卜花への毒殺復讐を企てる女医`,
+        bio: `揚州万福橋・蘇家三房の出身で、金陵で普済医館を営む才色兼備の女医。亡き監察御史・郭芝閔の婚約者であり、鍵穴に蝋を塗るほどの緻密な警戒心を持つ。実は閨中の親友を死に追いやった朱卜花への復讐を誓っており、彼の好物である樊記の焼鵞の煮汁に「槎頭鯿の肝」を仕込んで毒発による暗殺を企てていた。呉定縁・于謙に踏み込まれた後、共通の敵を前に一行と共闘する。`,
+        keywords: [`普済医館`, `樊記の焼鵞`, `槎頭鯿の肝（毒）`, `郭芝閔の婚約者`],
+        x: 500,
+        y: 620
+      },
+      {
+        id: `wu_buping`,
+        name: `呉不平`,
+        reading: `ウー・ブーピン / Wu Buping`,
+        actor: `張国強（チャン・グオチアン）`,
+        faction: `wu`,
+        role: `応天府三班総捕頭（異名：鉄獅子）`,
+        shortRole: `「鉄獅子」の異名を持つ父・元鉄盟の深い因縁`,
+        bio: `「金陵で彼に解けぬ事件はない」と謳われる名捕頭で、定縁と玉露の父。虎硫薬の盗難調査を鄭和から命じられる一方、監察御史・郭芝閔の変死を地震による事故として性急に処理したことで疑惑を招く。杏花楼では「鉄盟」の尊使の前に跪き、我が子らを見逃すよう懇願するなど、過去の鉄盟との消せぬ因縁を抱えながら家族を守ろうと奔走する。`,
+        keywords: [`鉄獅子`, `虎硫薬捜査`, `郭芝閔変死の隠蔽`, `杏花楼の懇願`],
+        x: 215,
+        y: 560
+      },
+      {
+        id: `wu_yulu`,
+        name: `呉玉露`,
+        reading: `ウー・ユールー / Wu Yulu`,
+        actor: `張凱瑩（チャン・カイイン）`,
+        faction: `wu`,
+        role: `定縁の妹・不平の娘`,
+        shortRole: `兄と父を案じ金陵の混乱を駆け回る妹`,
+        bio: `糖坊廊中巷に暮らす呉定縁の妹で、呉不平の娘。宝船爆破直後、扇骨台にいたはずの兄の安否を案じて街を駆け回り、父から応天府の官吏たちが東水関で全滅したとの急報を伝える。兄が稼いだ銀の送り先にも名を連ねる、家族の日常と安らぎの象徴であり、父と兄が命を懸けて守ろうとする存在。`,
+        keywords: [`糖坊廊中巷`, `兄思いの妹`, `家族の絆`],
+        x: 215,
+        y: 760
+      },
+      {
+        id: `zheng_he`,
+        name: `鄭和`,
+        reading: `ジェン・ハー / Zheng He`,
+        actor: `高曙光（ガオ・シューグアン）`,
+        faction: `jinling`,
+        role: `南京守備太監（鄭三保）`,
+        shortRole: `朱瞻基が金陵で最も信頼する唯一の腹心`,
+        bio: `永楽帝の時代から七度の大航海（下西洋）を率いた重臣であり、現在は南京守備太監を務める。金陵の宮廷と官府の規律が緩むなか、虎硫薬盗難の報を受けて呉不平に12刻限りの捜査を命じる。東水関の爆発で護衛を失いながらも無事を保ち、朱瞻基が金陵で唯一心から頼りにする忠臣として護送と手配を担う。`,
+        keywords: [`鄭三保`, `南京守備太監`, `虎硫薬の点検`, `忠臣`],
+        x: 1170,
+        y: 320
+      },
+      {
+        id: `zhu_buhua`,
+        name: `朱卜花`,
+        reading: `ジュー・ブーフア / Zhu Buhua`,
+        actor: `王靖（ワン・ジン）`,
+        faction: `jinling`,
+        role: `御馬監提督太監（勇士営統括）`,
+        shortRole: `裏で鉄盟と結託する太子暗殺計画の首謀者`,
+        bio: `元の名は脱脱卜花、太宗皇帝より朱姓を賜った御馬監提督太監。表向きは勇士営騎兵を率いて太子護衛を装うが、裏では鉄盟と通じ、郭芝閔に虎硫薬を宮中から持ち出させて宝船爆破を仕組んだ黒幕。さらに宮中へ戻った太子を配下の小四喜の毒殺騒ぎに見せかけて葬ろうと執拗に追い詰める一方、蘇荊渓の毒によって顔面や背に病変を来しつつある。`,
+        keywords: [`脱脱卜花`, `勇士営`, `小四喜の偽装`, `樊記の焼鵞`, `暗殺の黒幕`],
+        x: 1020,
+        y: 615
+      },
+      {
+        id: `yuan_zhongda`,
+        name: `袁仲達`,
+        reading: `ユエン・ジョンダー / Yuan Zhongda`,
+        actor: `馬少驊（マー・シャオホワ）`,
+        faction: `jinling`,
+        role: `太常寺卿・元密偵`,
+        shortRole: `北京からの密書と宮中密道を太子に伝え自害`,
+        bio: `永楽5年から21年までの16年間、太宗皇帝の命で建文帝（朱允炆）の行方を追い続けた元密偵で、現在は太常寺卿。張皇后から発せられた北京からの「六百里加急」の魚筒密書を朱瞻基へ届け、対局を装って皇宮の排水瓦渠から秦淮河へ抜ける脱出密道を伝授。朱卜花に捕らわれて機密が漏れるのを防ぐため、自ら死を賜ることを望み名節を全うした。`,
+        keywords: [`六百里加急の魚筒`, `16年間の建文帝探索`, `排水瓦渠の密道`, `忠義の自害`],
+        x: 1045,
+        y: 165
+      },
+      {
+        id: `zhan_peng`,
+        name: `展鵬`,
+        reading: `ジャン・ポン / Zhan Peng`,
+        actor: `袁文康（ユエン・ウェンカン）`,
+        faction: `jinling`,
+        role: `錦衣衛千戸`,
+        shortRole: `一行の動向を冷徹に監視・追跡する錦衣衛武官`,
+        bio: `金陵の錦衣衛を率いる千戸。宝船爆破と宮中での異変を受け、冷徹な判断力と精強な配下を駆使して事件の捜査と朱瞻基一行の足取りを執拗に追跡・監視する。朝廷の秩序と錦衣衛の職務を冷酷に執行する武官として、逃亡する一行の前に立ちはだかる。`,
+        keywords: [`錦衣衛千戸`, `冷徹な追跡`, `治安と監視`],
+        x: 1185,
+        y: 485
+      },
+      {
+        id: `empress_zhang`,
+        name: `張皇后`,
+        reading: `ジャン・ホアンホウ / Empress Zhang`,
+        actor: `陳数（チェン・シュー）`,
+        faction: `beijing`,
+        role: `明仁宗の皇后・朱瞻基の母`,
+        shortRole: `皇帝危篤の北京で権力を掌握し太子に帰京の密命を下す`,
+        bio: `北京紫禁城にて皇帝（明仁宗・朱高熾）危篤という国家最大の危機に直面する国母。異変を察知して欽安殿に陛下の寝具を移し、在京の三公・三孤・六部尚書から楽安府の漢王ら各地の藩王に至るまでを宮中へ召し集めて監視下に置き、簒奪の動きを牽制する。同時に金陵の息子・朱瞻基へ「即刻帰京せよ」との魚筒密書を送った。`,
+        keywords: [`欽安殿の鎮守`, `藩王召集による牽制`, `魚筒の密命`, `皇太子の母`],
+        x: 225,
+        y: 145
+      },
+      {
+        id: `zhu_gaoxu`,
+        name: `朱高煦`,
+        reading: `ジュー・ガオシュー / Zhu Gaoxu`,
+        actor: `張志堅（チャン・ジーケン）`,
+        faction: `beijing`,
+        role: `漢王・朱瞻基の叔父`,
+        shortRole: `皇位簒奪を虎視眈々と狙う宿敵の叔父`,
+        bio: `楽安府に封じられた漢王であり、朱瞻基の叔父。兄帝の危篤を機に張皇后の召還を受けて北京入りするが、その胸の内では皇位への野心を燃やし続けている。兄嫁である張皇后と宮中で緊迫した神経戦を繰り広げ、朱瞻基が十五日以内に北京へ戻れなければ帝位を手中に収めんと虎視眈々と機を窺う最大の宿敵。`,
+        keywords: [`漢王`, `楽安府`, `皇位簒奪の野心`, `張皇后との心理戦`],
+        x: 495,
+        y: 145
+      },
+      {
+        id: `wang_ji`,
+        name: `汪極`,
+        reading: `ワン・ジー / Wang Ji`,
+        actor: `李乃文（リー・ナイウェン）`,
+        faction: `jianghu`,
+        role: `揚州の豪商（漕商）`,
+        shortRole: `2000料の豪華な宝船を太子に献上した揚州漕商`,
+        bio: `運河交易で莫大な富を築いた揚州の筆頭漕商。鄭和の下西洋の船をも凌ぐ2000料の豪華な宝船を朱瞻基へ献上し、漕運廃止や遷都への反対を示す太子に利用される。しかしその宝船こそが虎硫薬を積んだ爆破の舞台となり、裏で朱卜花と結託して陰謀の片棒を担いでいた重要人物。`,
+        keywords: [`揚州漕商`, `二千料の宝船`, `漕運の利権`, `朱卜花との結託`],
+        x: 1175,
+        y: 810
+      },
+      {
+        id: `zuo_yehe`,
+        name: `昨葉何`,
+        reading: `ズオイエハー / Zuo Yehe`,
+        actor: `王和（ワン・ハー）`,
+        faction: `jianghu`,
+        role: `反朝廷組織「鉄盟」の尊使・刺客`,
+        shortRole: `鉄盟を率い太子暗殺に暗躍する冷徹な女性刺客`,
+        bio: `永楽十八年に山東で反乱を起こし鎮圧された反朝廷組織「鉄盟」の残党を束ねる冷徹な女性武芸者（尊使）。郭芝閔を口封じに葬り、杏花楼に鉄盟を集結させて朱卜花と連携しつつ「太子は金陵で死なねばならぬ」と執拗に刺客を放つ。呉不平を脅迫して過去を暴き、呉定縁とも幾度も刃を交えて因縁を深める。`,
+        keywords: [`鉄盟の尊使`, `永楽十八年山東の乱`, `杏花楼の集結`, `冷徹な刺客`],
+        x: 865,
+        y: 810
+      },
+      {
+        id: `kong_shiba`,
+        name: `孔十八`,
+        reading: `コン・シーバー / Kong Shiba`,
+        actor: `黄品沅（ホアン・ピンユエン）`,
+        faction: `jianghu`,
+        role: `大運河沿いの江湖勢力（漕幇）頭目`,
+        shortRole: `大運河の秩序を握る漕幇の豪傑・定縁に協力`,
+        bio: `金陵から北京へと至る大運河の水上と沿岸の江湖社会を取り仕切る漕幇の頭目。官府の法とは異なる江湖の「仁義」を重んじる豪傑であり、逃亡を続ける呉定縁と出会い、漕運を巡る利害と義理から一行の北上行路に力を貸す頼もしい協力者。`,
+        keywords: [`大運河と漕幇`, `江湖の仁義`, `北上ルートの支援`],
+        x: 525,
+        y: 815
+      },
+      {
+        id: `jin_rong`,
+        name: `靳栄`,
+        reading: `ジン・ロン / Jin Rong`,
+        actor: `于震（ユー・ジェン）`,
+        faction: `jianghu`,
+        role: `軍権と江湖武力を掌握する武将・実力者`,
+        shortRole: `軍権と江湖武力を握り漢王・朱高煦と軍事結託`,
+        bio: `京杭大運河沿いの要衝において正規の軍権と江湖の武力の双方を掌握する強大な実力者。北京で皇位簒奪を窺う漢王・朱高煦と水面下で軍事的に結託し、不穏な兵の動きを見せて朱瞻基の帰京路における巨大な障壁となる。`,
+        keywords: [`軍権と江湖武力`, `漢王との軍事結託`, `北上阻む強敵`],
+        x: 785,
+        y: 145
+      }
+    ];
+
+    const EDGES = [
+      { id: `e1`, source: `zhu_zhanji`, target: `wu_dingyuan`, directed: false, type: `trust`, label: `救命・事件捜査`, note: `扇骨台での救命を機に、立場の違いを超えて生死と真相を追う運命共同体。` },
+      { id: `e2`, source: `zhu_zhanji`, target: `yu_qian`, directed: false, type: `trust`, label: `君臣・絶大な信頼`, note: `正体を見抜いた于謙を右春坊右司直郎へ抜擢し、鄭和の令牌を託して捜査の全権を委ねる。` },
+      { id: `e3`, source: `wu_dingyuan`, target: `yu_qian`, directed: false, type: `trust`, label: `相棒・凸凹コンビ`, note: `金と保身を掲げる捕吏と大義を貫く文官。反発し合いながらも互いの背中を預け合う相棒。` },
+      { id: `e4`, source: `wu_dingyuan`, target: `su_jingxi`, directed: false, type: `mission`, label: `同行・共闘`, note: `普済医館での取り調べを機に、事件の真相と朱卜花打倒のため共闘する。` },
+      { id: `e5`, source: `yu_qian`, target: `su_jingxi`, directed: false, type: `mission`, label: `同行・共闘`, note: `医薬の知見と漢方毒の見立てを通じ、太子の危機を救うため一行として共闘する。` },
+      { id: `e6`, source: `su_jingxi`, target: `zhu_buhua`, directed: true, type: `hostile`, label: `復讐（毒殺の標的）`, note: `亡き親友の仇。好物の樊記の焼鵞に槎頭鯿の肝を仕込み、癰発による毒殺を計画。` },
+      { id: `e7`, source: `zhu_buhua`, target: `zhu_zhanji`, directed: true, type: `hostile`, label: `暗殺の黒幕`, note: `郭芝閔に虎硫薬を盗み出させ、宝船爆破・玄津橋襲撃・宮中殺害を主導した首謀者。` },
+      { id: `e8`, source: `zhu_zhanji`, target: `zheng_he`, directed: false, type: `trust`, label: `君臣・唯一の腹心`, note: `四面楚歌の金陵で朱瞻基が心から信頼を寄せた南京守備太監（鄭三保）。` },
+      { id: `e9`, source: `yuan_zhongda`, target: `zhu_zhanji`, directed: true, type: `mission`, label: `密書・密道伝授`, note: `張皇后の魚筒密書を届け、建文帝が用いた排水瓦渠の脱出密道を教えて自害。` },
+      { id: `e10`, source: `empress_zhang`, target: `zhu_zhanji`, directed: true, type: `mission`, label: `母子・帰京の密命`, note: `皇帝危篤の報と「即刻帰京せよ」との密命を六百里加急の魚筒に託す。` },
+      { id: `e11`, source: `zhu_gaoxu`, target: `zhu_zhanji`, directed: true, type: `hostile`, label: `叔父と甥・皇位争い`, note: `甥の帰京を阻み、北京での帝位継承を奪い取らんとする最大の政敵。` },
+      { id: `e12`, source: `empress_zhang`, target: `zhu_gaoxu`, directed: false, type: `hostile`, label: `牽制・権力争い`, note: `欽安殿へ藩王を召集し監視下に置く張皇后と、隙を窺う漢王の緊迫した対峙。` },
+      { id: `e13`, source: `wu_buping`, target: `wu_dingyuan`, directed: false, type: `trust`, label: `父子`, note: `息子を危険な捜査から遠ざけようと厳しい態度をとる父と、父の秘密を追う息子。` },
+      { id: `e14`, source: `wu_buping`, target: `wu_yulu`, directed: false, type: `trust`, label: `父娘`, note: `金陵の騒乱の中で何よりも守ろうとする愛娘。` },
+      { id: `e15`, source: `wu_dingyuan`, target: `wu_yulu`, directed: false, type: `trust`, label: `兄妹`, note: `兄の身を案じる妹と、銀を送って生活を支える兄。` },
+      { id: `e16`, source: `wu_buping`, target: `zhu_buhua`, directed: false, type: `conspiracy`, label: `鉄盟の因縁・隠蔽`, note: `郭芝閔変死の真相や虎硫薬流出をめぐり、過去の鉄盟の因縁が絡む暗い関係。` },
+      { id: `e17`, source: `zhan_peng`, target: `zhu_zhanji`, directed: true, type: `hostile`, label: `追跡・監視（錦衣衛）`, note: `錦衣衛千戸として脱出後の太子一行の足取りを執拗に追う。` },
+      { id: `e18`, source: `wang_ji`, target: `zhu_zhanji`, directed: true, type: `mission`, label: `宝船献上`, note: `2000料の豪華な宝船を献上し、太子に漕運維持をアピールさせた。` },
+      { id: `e19`, source: `zhu_buhua`, target: `wang_ji`, directed: false, type: `conspiracy`, label: `結託（宝船利用）`, note: `献上宝船に虎硫薬を仕込み爆破の舞台へと変えた裏の結託。` },
+      { id: `e20`, source: `zuo_yehe`, target: `zhu_zhanji`, directed: true, type: `hostile`, label: `刺客・襲撃`, note: `「太子は必ず金陵で死なねばならぬ」と刺客網を敷き命を狙う。` },
+      { id: `e21`, source: `zuo_yehe`, target: `zhu_buhua`, directed: false, type: `conspiracy`, label: `鉄盟・共謀`, note: `虎硫薬の搬出と暗殺実行で手を結ぶ宮中と反朝廷組織の危険な共謀。` },
+      { id: `e22`, source: `wu_dingyuan`, target: `zuo_yehe`, directed: false, type: `hostile`, label: `因縁の対峙`, note: `杏花楼と父・不平の過去をめぐり、幾度も刃を交える宿命の対峙。` },
+      { id: `e23`, source: `kong_shiba`, target: `wu_dingyuan`, directed: false, type: `trust`, label: `漕幇の仁義・協力`, note: `大運河を牛耳る漕幇の仁義により、北上する定縁らを陰から支える。` },
+      { id: `e24`, source: `jin_rong`, target: `zhu_gaoxu`, directed: false, type: `conspiracy`, label: `軍事結託・不穏な動き`, note: `地方の軍権・江湖武力を背景に、漢王の皇位簒奪計画へ呼応する不穏な連係。` }
+    ];
+
+    const EDGE_COLOR_MAP = {
+      trust: `--edge-trust`,
+      hostile: `--edge-hostile`,
+      conspiracy: `--edge-conspiracy`,
+      mission: `--edge-mission`
+    };
+
+    const DEFAULT_POSITIONS = CHARACTERS.reduce(function (acc, c) {
+      acc[c.id] = { x: c.x, y: c.y };
+      return acc;
+    }, {});
+
+    const STATE = {
+      positions: JSON.parse(JSON.stringify(DEFAULT_POSITIONS)),
+      selectedCharId: null,
+      selectedEdgeId: null,
+      activeFaction: `all`,
+      searchQuery: ``,
+      showEdgeLabels: true,
+      panX: 0,
+      panY: 0,
+      scale: 0.9,
+      isPanning: false,
+      panStartClientX: 0,
+      panStartClientY: 0,
+      panStartX: 0,
+      panStartY: 0,
+      dragNodeId: null,
+      dragMoved: false,
+      dragStartClientX: 0,
+      dragStartClientY: 0,
+      dragNodeStartX: 0,
+      dragNodeStartY: 0,
+      isPseudoFullscreen: false
+    };
+
+    const NODE_HALF_W = 87;
+    const NODE_HALF_H = 46;
+    const WORLD_W = 1400;
+    const WORLD_H = 940;
+
+    function getChar(id) {
+      return CHARACTERS.find(function (c) { return c.id === id; }) || null;
+    }
+
+    function getEdge(id) {
+      return EDGES.find(function (e) { return e.id === id; }) || null;
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById(`status-toast`);
+      if (!toast) return;
+      toast.textContent = msg;
+      toast.classList.add(`visible`);
+      window.clearTimeout(STATE.toastTimer);
+      STATE.toastTimer = window.setTimeout(function () {
+        toast.classList.remove(`visible`);
+      }, 2400);
+    }
+
+    function buildSvgMarkers() {
+      const defs = document.getElementById(`svg-defs`);
+      if (!defs) return;
+      defs.innerHTML = ``;
+      Object.keys(EDGE_COLOR_MAP).forEach(function (type) {
+        const marker = document.createElementNS(`http://www.w3.org/2000/svg`, `marker`);
+        marker.setAttribute(`id`, `arrow-${type}`);
+        marker.setAttribute(`viewBox`, `0 0 10 10`);
+        marker.setAttribute(`refX`, `8.5`);
+        marker.setAttribute(`refY`, `5`);
+        marker.setAttribute(`markerWidth`, `7.5`);
+        marker.setAttribute(`markerHeight`, `7.5`);
+        marker.setAttribute(`orient`, `auto-start-reverse`);
+
+        const path = document.createElementNS(`http://www.w3.org/2000/svg`, `path`);
+        path.setAttribute(`d`, `M 0 1.2 L 9 5 L 0 8.8 z`);
+        path.setAttribute(`fill`, `var(${EDGE_COLOR_MAP[type]})`);
+        marker.appendChild(path);
+        defs.appendChild(marker);
+      });
+    }
+
+    function renderZonePlates() {
+      const zoneLayer = document.getElementById(`zone-layer`);
+      if (!zoneLayer) return;
+      zoneLayer.innerHTML = ``;
+      ZONE_PLATES.forEach(function (z) {
+        const f = FACTIONS[z.id];
+        const el = document.createElement(`div`);
+        el.className = `faction-zone`;
+        el.dataset.zoneFaction = z.id;
+        el.style.left = `${z.x}px`;
+        el.style.top = `${z.y}px`;
+        el.style.width = `${z.w}px`;
+        el.style.height = `${z.h}px`;
+        el.style.background = `var(${f.bgVar})`;
+        el.style.borderColor = `var(${f.borderVar})`;
+
+        const label = document.createElement(`span`);
+        label.className = `zone-label`;
+        label.style.color = `var(${f.colorVar})`;
+        label.style.borderColor = `var(${f.borderVar})`;
+        label.textContent = z.label;
+
+        el.appendChild(label);
+        zoneLayer.appendChild(el);
+      });
+    }
+
+    function renderNodes() {
+      const nodesLayer = document.getElementById(`nodes-layer`);
+      if (!nodesLayer) return;
+      nodesLayer.innerHTML = ``;
+
+      CHARACTERS.forEach(function (char) {
+        const faction = FACTIONS[char.faction];
+        const pos = STATE.positions[char.id] || { x: char.x, y: char.y };
+        const degree = EDGES.filter(function (e) {
+          return e.source === char.id || e.target === char.id;
+        }).length;
+
+        const node = document.createElement(`div`);
+        node.className = `char-node`;
+        node.id = `node-${char.id}`;
+        node.dataset.charId = char.id;
+        node.tabIndex = 0;
+        node.setAttribute(`role`, `button`);
+        node.setAttribute(`aria-label`, `${char.name}（${char.actor}）— ${faction.short}`);
+        node.style.left = `${pos.x}px`;
+        node.style.top = `${pos.y}px`;
+        node.style.borderColor = `var(${faction.borderVar})`;
+
+        node.innerHTML = `
+          <div class="node-top-bar">
+            <span class="node-faction-pill" style="color: var(${faction.colorVar}); background: var(${faction.bgVar}); border: 1px solid var(${faction.borderVar});">${faction.short}</span>
+            <span class="node-degree">因縁 ${degree}</span>
+          </div>
+          <div class="node-name-row">
+            <span class="node-name">${char.name}</span>
+            <span class="node-actor">${char.actor.split(`（`)[0]}</span>
+          </div>
+          <div class="node-role">${char.shortRole}</div>
+        `;
+
+        node.addEventListener(`pointerdown`, function (ev) {
+          handleNodePointerDown(ev, char.id);
+        });
+        node.addEventListener(`keydown`, function (ev) {
+          if (ev.key === `Enter` || ev.key === ` `) {
+            ev.preventDefault();
+            selectCharacter(char.id, true);
+          }
+        });
+        node.addEventListener(`dblclick`, function (ev) {
+          ev.stopPropagation();
+          openDetailModal(char.id);
+        });
+
+        nodesLayer.appendChild(node);
+      });
+    }
+
+    /* Clip a ray from center (cx, cy) toward (px, py) to the card boundary */
+    function clipToNodePerimeter(cx, cy, px, py) {
+      const dx = px - cx;
+      const dy = py - cy;
+      if (Math.abs(dx) < 0.001 && Math.abs(dy) < 0.001) {
+        return { x: cx, y: cy };
+      }
+      const padX = NODE_HALF_W + 6;
+      const padY = NODE_HALF_H + 6;
+      const tx = Math.abs(dx) > 0.001 ? padX / Math.abs(dx) : Infinity;
+      const ty = Math.abs(dy) > 0.001 ? padY / Math.abs(dy) : Infinity;
+      const t = Math.min(tx, ty);
+      return {
+        x: cx + dx * t,
+        y: cy + dy * t
+      };
+    }
+
+    function computeEdgeGeometry(edge) {
+      const p1 = STATE.positions[edge.source];
+      const p2 = STATE.positions[edge.target];
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      const len = Math.hypot(dx, dy) || 1;
+      const nx = -dy / len;
+      const ny = dx / len;
+
+      /* Subtle curvature offset so overlapping/parallel paths separate cleanly */
+      const hashOffset = ((edge.id.charCodeAt(1) || 1) % 3 - 1) * 26;
+      const baseCurve = Math.min(58, Math.max(22, len * 0.14)) + hashOffset;
+      const ctrlX = (p1.x + p2.x) * 0.5 + nx * baseCurve;
+      const ctrlY = (p1.y + p2.y) * 0.5 + ny * baseCurve;
+
+      const start = clipToNodePerimeter(p1.x, p1.y, ctrlX, ctrlY);
+      const end = clipToNodePerimeter(p2.x, p2.y, ctrlX, ctrlY);
+
+      /* Recompute exact quadratic Bezier midpoint t=0.5 */
+      const midX = 0.25 * start.x + 0.5 * ctrlX + 0.25 * end.x;
+      const midY = 0.25 * start.y + 0.5 * ctrlY + 0.25 * end.y;
+
+      return {
+        d: `M ${start.x.toFixed(1)} ${start.y.toFixed(1)} Q ${ctrlX.toFixed(1)} ${ctrlY.toFixed(1)} ${end.x.toFixed(1)} ${end.y.toFixed(1)}`,
+        midX: midX,
+        midY: midY
+      };
+    }
+
+    function renderEdges() {
+      const edgesGroup = document.getElementById(`edges-group`);
+      const labelsGroup = document.getElementById(`edge-labels-group`);
+      if (!edgesGroup || !labelsGroup) return;
+
+      edgesGroup.innerHTML = ``;
+      labelsGroup.innerHTML = ``;
+
+      EDGES.forEach(function (edge) {
+        const geom = computeEdgeGeometry(edge);
+        const colorVar = EDGE_COLOR_MAP[edge.type] || `--tertiary`;
+
+        const g = document.createElementNS(`http://www.w3.org/2000/svg`, `g`);
+        g.setAttribute(`class`, `edge-group`);
+        g.setAttribute(`id`, `edge-${edge.id}`);
+        g.dataset.edgeId = edge.id;
+
+        const hit = document.createElementNS(`http://www.w3.org/2000/svg`, `path`);
+        hit.setAttribute(`class`, `edge-hit-path`);
+        hit.setAttribute(`d`, geom.d);
+
+        const path = document.createElementNS(`http://www.w3.org/2000/svg`, `path`);
+        path.setAttribute(`class`, `edge-path`);
+        path.setAttribute(`d`, geom.d);
+        path.setAttribute(`stroke`, `var(${colorVar})`);
+        if (edge.type === `conspiracy`) {
+          path.setAttribute(`stroke-dasharray`, `6 4`);
+        }
+        if (edge.directed) {
+          path.setAttribute(`marker-end`, `url(#arrow-${edge.type})`);
+        }
+
+        g.appendChild(hit);
+        g.appendChild(path);
+        g.addEventListener(`click`, function (ev) {
+          ev.stopPropagation();
+          selectEdge(edge.id);
+        });
+        edgesGroup.appendChild(g);
+
+        /* Label pill */
+        const lg = document.createElementNS(`http://www.w3.org/2000/svg`, `g`);
+        lg.setAttribute(`class`, `edge-label-pill`);
+        lg.setAttribute(`id`, `edge-label-${edge.id}`);
+        lg.setAttribute(`transform`, `translate(${geom.midX.toFixed(1)}, ${geom.midY.toFixed(1)})`);
+
+        const textLen = edge.label.length * 11 + 16;
+        const rect = document.createElementNS(`http://www.w3.org/2000/svg`, `rect`);
+        rect.setAttribute(`class`, `edge-label-bg`);
+        rect.setAttribute(`x`, (-textLen / 2).toFixed(1));
+        rect.setAttribute(`y`, `-11`);
+        rect.setAttribute(`width`, textLen.toFixed(1));
+        rect.setAttribute(`height`, `22`);
+        rect.setAttribute(`rx`, `4`);
+        rect.setAttribute(`stroke`, `var(${colorVar})`);
+
+        const txt = document.createElementNS(`http://www.w3.org/2000/svg`, `text`);
+        txt.setAttribute(`class`, `edge-label-text`);
+        txt.textContent = edge.label;
+
+        lg.appendChild(rect);
+        lg.appendChild(txt);
+        lg.addEventListener(`click`, function (ev) {
+          ev.stopPropagation();
+          selectEdge(edge.id);
+        });
+        labelsGroup.appendChild(lg);
+      });
+
+      updateEdgeLabelVisibility();
+    }
+
+    function updateEdgesPositionsOnly() {
+      EDGES.forEach(function (edge) {
+        const geom = computeEdgeGeometry(edge);
+        const g = document.getElementById(`edge-${edge.id}`);
+        if (g) {
+          const paths = g.querySelectorAll(`path`);
+          paths.forEach(function (p) { p.setAttribute(`d`, geom.d); });
+        }
+        const lg = document.getElementById(`edge-label-${edge.id}`);
+        if (lg) {
+          lg.setAttribute(`transform`, `translate(${geom.midX.toFixed(1)}, ${geom.midY.toFixed(1)})`);
+        }
+      });
+    }
+
+    function updateEdgeLabelVisibility() {
+      const labelsGroup = document.getElementById(`edge-labels-group`);
+      if (!labelsGroup) return;
+      labelsGroup.style.display = STATE.showEdgeLabels ? `block` : `none`;
+    }
+
+    function applyHighlightAndFilters() {
+      const selectedId = STATE.selectedCharId;
+      const selectedEdgeId = STATE.selectedEdgeId;
+      const factionFilter = STATE.activeFaction;
+      const q = STATE.searchQuery.trim().toLowerCase();
+
+      const connectedCharIds = new Set();
+      const connectedEdgeIds = new Set();
+
+      if (selectedId) {
+        connectedCharIds.add(selectedId);
+        EDGES.forEach(function (e) {
+          if (e.source === selectedId || e.target === selectedId) {
+            connectedEdgeIds.add(e.id);
+            connectedCharIds.add(e.source);
+            connectedCharIds.add(e.target);
+          }
+        });
+      } else if (selectedEdgeId) {
+        const edge = getEdge(selectedEdgeId);
+        if (edge) {
+          connectedEdgeIds.add(edge.id);
+          connectedCharIds.add(edge.source);
+          connectedCharIds.add(edge.target);
+        }
+      }
+
+      const matchingSearchIds = new Set();
+      if (q) {
+        CHARACTERS.forEach(function (c) {
+          const hay = `${c.name} ${c.reading} ${c.actor} ${c.role} ${c.keywords.join(` `)}`.toLowerCase();
+          if (hay.indexOf(q) !== -1) matchingSearchIds.add(c.id);
+        });
+      }
+
+      let visibleNodeCount = 0;
+      let visibleEdgeCount = 0;
+
+      CHARACTERS.forEach(function (c) {
+        const node = document.getElementById(`node-${c.id}`);
+        if (!node) return;
+        node.classList.remove(`selected`, `connected`, `dimmed`);
+
+        let matchesFilter = true;
+        if (factionFilter !== `all` && c.faction !== factionFilter) {
+          matchesFilter = false;
+        }
+        if (q && !matchingSearchIds.has(c.id)) {
+          matchesFilter = false;
+        }
+
+        if (selectedId || selectedEdgeId) {
+          if (c.id === selectedId) {
+            node.classList.add(`selected`);
+            visibleNodeCount++;
+          } else if (connectedCharIds.has(c.id)) {
+            node.classList.add(`connected`);
+            visibleNodeCount++;
+          } else {
+            node.classList.add(`dimmed`);
+          }
+        } else if (!matchesFilter) {
+          node.classList.add(`dimmed`);
+        } else {
+          visibleNodeCount++;
+        }
+      });
+
+      EDGES.forEach(function (e) {
+        const eg = document.getElementById(`edge-${e.id}`);
+        const lg = document.getElementById(`edge-label-${e.id}`);
+        const sChar = getChar(e.source);
+        const tChar = getChar(e.target);
+
+        let isHighlighted = false;
+        let isDimmed = false;
+
+        if (selectedId || selectedEdgeId) {
+          if (connectedEdgeIds.has(e.id)) {
+            isHighlighted = true;
+          } else {
+            isDimmed = true;
+          }
+        } else {
+          const sMatch = (factionFilter === `all` || (sChar && sChar.faction === factionFilter)) && (!q || matchingSearchIds.has(e.source));
+          const tMatch = (factionFilter === `all` || (tChar && tChar.faction === factionFilter)) && (!q || matchingSearchIds.has(e.target));
+          if (!sMatch && !tMatch) {
+            isDimmed = true;
+          }
+        }
+
+        if (!isDimmed) visibleEdgeCount++;
+
+        if (eg) {
+          eg.classList.toggle(`highlighted`, isHighlighted);
+          eg.classList.toggle(`dimmed`, isDimmed);
+        }
+        if (lg) {
+          lg.style.opacity = isDimmed ? `0.1` : `1`;
+        }
+      });
+
+      /* Zone plates dimming */
+      document.querySelectorAll(`.faction-zone`).forEach(function (zoneEl) {
+        const zf = zoneEl.dataset.zoneFaction;
+        if (selectedId || selectedEdgeId || q) {
+          zoneEl.classList.add(`dimmed`);
+        } else if (factionFilter !== `all` && factionFilter !== zf) {
+          zoneEl.classList.add(`dimmed`);
+        } else {
+          zoneEl.classList.remove(`dimmed`);
+        }
+      });
+
+      const kpiNodes = document.getElementById(`kpi-nodes`);
+      const kpiEdges = document.getElementById(`kpi-edges`);
+      if (kpiNodes) kpiNodes.textContent = `${visibleNodeCount}名`;
+      if (kpiEdges) kpiEdges.textContent = `${visibleEdgeCount}本`;
+    }
+
+    function renderInspector() {
+      const panel = document.getElementById(`inspector-panel`);
+      if (!panel) return;
+
+      if (STATE.selectedEdgeId && !STATE.selectedCharId) {
+        const edge = getEdge(STATE.selectedEdgeId);
+        if (edge) {
+          const s = getChar(edge.source);
+          const t = getChar(edge.target);
+          const colorVar = EDGE_COLOR_MAP[edge.type] || `--tertiary`;
+          const connector = edge.directed ? ` → ` : ` ー `;
+          panel.innerHTML = `
+            <div class="detail-card">
+              <div class="detail-header">
+                <div class="detail-meta-row">
+                  <span class="node-faction-pill" style="color: var(${colorVar}); border: 1px solid var(${colorVar});">関係線フォーカス</span>
+                  <button type="button" class="secondary-action-btn" style="min-height:36px;padding:0 10px;" onclick="clearSelection()">解除</button>
+                </div>
+                <h2 class="detail-name">${s.name}${connector}${t.name}</h2>
+                <div class="detail-reading">【${edge.label}】</div>
+              </div>
+              <p class="detail-bio">${edge.note}</p>
+              <h3 class="inspector-section-title">関係当事者</h3>
+              <div class="rel-list">
+                <button type="button" class="rel-item-btn" onclick="selectCharacter('${s.id}', true)">
+                  <div class="rel-item-top">
+                    <span class="rel-target">${s.name}</span>
+                    <span class="rel-direction" style="color: var(${FACTIONS[s.faction].colorVar});">${FACTIONS[s.faction].short}</span>
+                  </div>
+                  <span class="rel-label-desc">${s.actor} / ${s.role}</span>
+                </button>
+                <button type="button" class="rel-item-btn" onclick="selectCharacter('${t.id}', true)">
+                  <div class="rel-item-top">
+                    <span class="rel-target">${t.name}</span>
+                    <span class="rel-direction" style="color: var(${FACTIONS[t.faction].colorVar});">${FACTIONS[t.faction].short}</span>
+                  </div>
+                  <span class="rel-label-desc">${t.actor} / ${t.role}</span>
+                </button>
+              </div>
+            </div>
+          `;
+          return;
+        }
+      }
+
+      if (!STATE.selectedCharId) {
+        const quickHtml = CHARACTERS.map(function (c) {
+          const f = FACTIONS[c.faction];
+          return `
+            <button type="button" class="roster-chip" onclick="selectCharacter('${c.id}', true)" style="border-left: 3px solid var(${f.colorVar});">
+              <span class="roster-chip-name">${c.name}</span>
+              <span class="roster-chip-sub">${c.actor.split(`（`)[0]} ・ ${f.short}</span>
+            </button>
+          `;
+        }).join(``);
+
+        panel.innerHTML = `
+          <div class="inspector-empty">
+            <h2 class="inspector-section-title">相関図ガイド</h2>
+            <p class="detail-bio">人物ノードをクリックすると、その人物と直接結ばれた因縁・勢力関係のみが浮かび上がります。ノードは自由にドラッグして再配置できます。</p>
+            <h3 class="inspector-section-title">全16名クイック選択</h3>
+            <div class="roster-quick-list">${quickHtml}</div>
+          </div>
+        `;
+        return;
+      }
+
+      const char = getChar(STATE.selectedCharId);
+      if (!char) return;
+      const faction = FACTIONS[char.faction];
+
+      const rels = EDGES.filter(function (e) {
+        return e.source === char.id || e.target === char.id;
+      });
+
+      const relItemsHtml = rels.map(function (e) {
+        const isOutgoing = e.source === char.id;
+        const otherId = isOutgoing ? e.target : e.source;
+        const other = getChar(otherId);
+        const otherFaction = FACTIONS[other.faction];
+        const colorVar = EDGE_COLOR_MAP[e.type] || `--tertiary`;
+        let dirBadge = `相互`;
+        if (e.directed) {
+          dirBadge = isOutgoing ? `${char.name} → 相手` : `相手 → ${char.name}`;
+        }
+        return `
+          <button type="button" class="rel-item-btn" onclick="selectCharacter('${other.id}', true)">
+            <div class="rel-item-top">
+              <span class="rel-target">${other.name} <small style="color:var(${otherFaction.colorVar});font-weight:400;">(${otherFaction.short})</small></span>
+              <span class="rel-direction" style="color: var(${colorVar}); border: 1px solid var(${colorVar});">${dirBadge}</span>
+            </div>
+            <span class="rel-label-desc">【${e.label}】 ${e.note}</span>
+          </button>
+        `;
+      }).join(``);
+
+      const kwHtml = char.keywords.map(function (kw) {
+        return `<span class="keyword-tag">${kw}</span>`;
+      }).join(``);
+
+      panel.innerHTML = `
+        <div class="detail-card">
+          <div class="detail-header">
+            <div class="detail-meta-row">
+              <span class="node-faction-pill" style="color: var(${faction.colorVar}); background: var(${faction.bgVar}); border: 1px solid var(${faction.borderVar});">${faction.name}</span>
+              <button type="button" class="secondary-action-btn" style="min-height:36px;padding:0 10px;" onclick="clearSelection()">選択解除</button>
+            </div>
+            <h2 class="detail-name">${char.name}</h2>
+            <div class="detail-reading">${char.reading}</div>
+            <div class="detail-cast">演：${char.actor} ／ ${char.role}</div>
+          </div>
+
+          <p class="detail-bio">${char.bio}</p>
+
+          <div class="keyword-list">${kwHtml}</div>
+
+          <button type="button" class="primary-action-btn" onclick="openDetailModal('${char.id}')">
+            <i data-lucide="book-open" style="width:18px;height:18px;"></i>
+            <span>詳細ポップアップを開く</span>
+          </button>
+
+          <h3 class="inspector-section-title">直接の関係一覧（${rels.length}件）</h3>
+          <div class="rel-list">${relItemsHtml}</div>
+        </div>
+      `;
+
+      if (window.lucide && typeof window.lucide.createIcons === `function`) {
+        window.lucide.createIcons();
+      }
+    }
+
+    function selectCharacter(id, panIntoViewIfNeeded) {
+      STATE.selectedCharId = id;
+      STATE.selectedEdgeId = null;
+      applyHighlightAndFilters();
+      renderInspector();
+
+      if (panIntoViewIfNeeded) {
+        const stage = document.getElementById(`graph-stage`);
+        const pos = STATE.positions[id];
+        if (stage && pos) {
+          const sx = pos.x * STATE.scale + STATE.panX;
+          const sy = pos.y * STATE.scale + STATE.panY;
+          const w = stage.clientWidth;
+          const h = stage.clientHeight;
+          if (sx < 80 || sx > w - 80 || sy < 60 || sy > h - 60) {
+            STATE.panX = w * 0.5 - pos.x * STATE.scale;
+            STATE.panY = h * 0.5 - pos.y * STATE.scale;
+            applyTransform();
+          }
+        }
+      }
+      persistState();
+    }
+
+    function selectEdge(edgeId) {
+      STATE.selectedEdgeId = edgeId;
+      STATE.selectedCharId = null;
+      applyHighlightAndFilters();
+      renderInspector();
+      persistState();
+    }
+
+    function clearSelection() {
+      STATE.selectedCharId = null;
+      STATE.selectedEdgeId = null;
+      applyHighlightAndFilters();
+      renderInspector();
+      persistState();
+    }
+
+    function setFactionFilter(factionId) {
+      STATE.activeFaction = factionId;
+      STATE.selectedCharId = null;
+      STATE.selectedEdgeId = null;
+
+      document.querySelectorAll(`#faction-filters .filter-btn`).forEach(function (btn) {
+        btn.classList.toggle(`active`, btn.dataset.faction === factionId);
+      });
+
+      applyHighlightAndFilters();
+      renderInspector();
+      persistState();
+    }
+
+    function handleSearchInput(val) {
+      STATE.searchQuery = val || ``;
+      if (STATE.searchQuery.trim()) {
+        STATE.selectedCharId = null;
+        STATE.selectedEdgeId = null;
+      }
+      applyHighlightAndFilters();
+      renderInspector();
+    }
+
+    function toggleEdgeLabels() {
+      STATE.showEdgeLabels = !STATE.showEdgeLabels;
+      const btn = document.getElementById(`btn-toggle-labels`);
+      if (btn) {
+        btn.setAttribute(`aria-pressed`, STATE.showEdgeLabels ? `true` : `false`);
+        btn.classList.toggle(`active-toggle`, STATE.showEdgeLabels);
+      }
+      updateEdgeLabelVisibility();
+      persistState();
+    }
+
+    function applyTransform() {
+      const world = document.getElementById(`canvas-world`);
+      if (world) {
+        world.style.transform = `translate(${STATE.panX.toFixed(1)}px, ${STATE.panY.toFixed(1)}px) scale(${STATE.scale.toFixed(3)})`;
+      }
+      const readout = document.getElementById(`zoom-readout`);
+      if (readout) {
+        readout.textContent = `倍率 ${Math.round(STATE.scale * 100)}% ・ ノードはドラッグ移動可能`;
+      }
+    }
+
+    function fitGraphToStage() {
+      const stage = document.getElementById(`graph-stage`);
+      if (!stage) return;
+      const w = stage.clientWidth || 960;
+      const h = stage.clientHeight || 640;
+      const scaleX = (w - 32) / WORLD_W;
+      const scaleY = (h - 60) / WORLD_H;
+      const s = Math.max(0.45, Math.min(1.15, Math.min(scaleX, scaleY)));
+      STATE.scale = s;
+      STATE.panX = (w - WORLD_W * s) * 0.5;
+      STATE.panY = Math.max(12, (h - WORLD_H * s) * 0.45);
+      applyTransform();
+    }
+
+    function zoomBy(delta, pivotClientX, pivotClientY) {
+      const stage = document.getElementById(`graph-stage`);
+      if (!stage) return;
+      const rect = stage.getBoundingClientRect();
+      const px = typeof pivotClientX === `number` ? pivotClientX - rect.left : rect.width * 0.5;
+      const py = typeof pivotClientY === `number` ? pivotClientY - rect.top : rect.height * 0.5;
+
+      const oldScale = STATE.scale;
+      const newScale = Math.max(0.42, Math.min(1.8, oldScale + delta));
+      if (Math.abs(newScale - oldScale) < 0.001) return;
+
+      const worldX = (px - STATE.panX) / oldScale;
+      const worldY = (py - STATE.panY) / oldScale;
+
+      STATE.scale = newScale;
+      STATE.panX = px - worldX * newScale;
+      STATE.panY = py - worldY * newScale;
+      applyTransform();
+    }
+
+    function resetGraphLayout(btn) {
+      STATE.positions = JSON.parse(JSON.stringify(DEFAULT_POSITIONS));
+      STATE.activeFaction = `all`;
+      STATE.searchQuery = ``;
+      STATE.selectedCharId = null;
+      STATE.selectedEdgeId = null;
+
+      const searchEl = document.getElementById(`char-search`);
+      if (searchEl) searchEl.value = ``;
+
+      document.querySelectorAll(`#faction-filters .filter-btn`).forEach(function (b) {
+        b.classList.toggle(`active`, b.dataset.faction === `all`);
+      });
+
+      renderNodes();
+      renderEdges();
+      applyHighlightAndFilters();
+      renderInspector();
+      fitGraphToStage();
+      persistState();
+      showToast(`配置・ズーム・選択状態を初期位置へ戻しました`);
+      if (btn) btn.blur();
+    }
+
+    function toggleFullscreen() {
+      const shell = document.getElementById(`app-shell`);
+      if (!shell) return;
+
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(function () {});
+        return;
+      }
+
+      if (typeof shell.requestFullscreen === `function`) {
+        shell.requestFullscreen().then(function () {
+          window.setTimeout(fitGraphToStage, 120);
+        }).catch(function () {
+          STATE.isPseudoFullscreen = !STATE.isPseudoFullscreen;
+          shell.classList.toggle(`pseudo-fullscreen`, STATE.isPseudoFullscreen);
+          window.setTimeout(fitGraphToStage, 80);
+        });
+      } else {
+        STATE.isPseudoFullscreen = !STATE.isPseudoFullscreen;
+        shell.classList.toggle(`pseudo-fullscreen`, STATE.isPseudoFullscreen);
+        window.setTimeout(fitGraphToStage, 80);
+      }
+    }
+
+    function openDetailModal(charId) {
+      const char = getChar(charId);
+      if (!char) return;
+      const faction = FACTIONS[char.faction];
+
+      const badge = document.getElementById(`modal-faction-badge`);
+      const title = document.getElementById(`modal-char-name`);
+      const sub = document.getElementById(`modal-char-sub`);
+      const actor = document.getElementById(`modal-actor`);
+      const role = document.getElementById(`modal-role`);
+      const bio = document.getElementById(`modal-bio`);
+      const kws = document.getElementById(`modal-keywords`);
+      const relsBox = document.getElementById(`modal-rels`);
+      const overlay = document.getElementById(`detail-modal`);
+
+      if (badge) {
+        badge.textContent = faction.name;
+        badge.style.color = `var(${faction.colorVar})`;
+        badge.style.background = `var(${faction.bgVar})`;
+        badge.style.border = `1px solid var(${faction.borderVar})`;
+      }
+      if (title) title.textContent = char.name;
+      if (sub) sub.textContent = char.reading;
+      if (actor) actor.textContent = char.actor;
+      if (role) role.textContent = char.role;
+      if (bio) bio.textContent = char.bio;
+      if (kws) {
+        kws.innerHTML = char.keywords.map(function (k) {
+          return `<span class="keyword-tag">${k}</span>`;
+        }).join(``);
+      }
+      if (relsBox) {
+        const rels = EDGES.filter(function (e) {
+          return e.source === char.id || e.target === char.id;
+        });
+        relsBox.innerHTML = rels.map(function (e) {
+          const isOut = e.source === char.id;
+          const other = getChar(isOut ? e.target : e.source);
+          const colorVar = EDGE_COLOR_MAP[e.type] || `--tertiary`;
+          const dirLabel = e.directed ? (isOut ? `${char.name} → ${other.name}` : `${other.name} → ${char.name}`) : `${char.name} ー ${other.name}`;
+          return `
+            <button type="button" class="rel-item-btn" onclick="openDetailModal('${other.id}'); selectCharacter('${other.id}', true);">
+              <div class="rel-item-top">
+                <span class="rel-target">${dirLabel}</span>
+                <span class="rel-direction" style="color: var(${colorVar}); border: 1px solid var(${colorVar});">${e.label}</span>
+              </div>
+              <span class="rel-label-desc">${e.note}</span>
+            </button>
+          `;
+        }).join(``);
+      }
+      if (overlay) {
+        overlay.classList.add(`open`);
+      }
+    }
+
+    function closeDetailModal() {
+      const overlay = document.getElementById(`detail-modal`);
+      if (overlay) overlay.classList.remove(`open`);
+    }
+
+    /* Pointer Dragging & Canvas Panning */
+    function handleNodePointerDown(ev, charId) {
+      if (ev.button !== 0 && ev.pointerType === `mouse`) return;
+      ev.stopPropagation();
+      const pos = STATE.positions[charId];
+      if (!pos) return;
+
+      STATE.dragNodeId = charId;
+      STATE.dragMoved = false;
+      STATE.dragStartClientX = ev.clientX;
+      STATE.dragStartClientY = ev.clientY;
+      STATE.dragNodeStartX = pos.x;
+      STATE.dragNodeStartY = pos.y;
+
+      const nodeEl = document.getElementById(`node-${charId}`);
+      if (nodeEl) nodeEl.classList.add(`dragging`);
+    }
+
+    function attachStageEvents() {
+      const stage = document.getElementById(`graph-stage`);
+      const modalOverlay = document.getElementById(`detail-modal`);
+      if (!stage) return;
+
+      stage.addEventListener(`pointerdown`, function (ev) {
+        if (ev.target.closest(`.char-node`) || ev.target.closest(`.edge-group`) || ev.target.closest(`.edge-label-pill`) || ev.target.closest(`.canvas-hud-bottom`)) {
+          return;
+        }
+        STATE.isPanning = true;
+        STATE.dragMoved = false;
+        STATE.panStartClientX = ev.clientX;
+        STATE.panStartClientY = ev.clientY;
+        STATE.panStartX = STATE.panX;
+        STATE.panStartY = STATE.panY;
+        stage.classList.add(`panning`);
+      });
+
+      window.addEventListener(`pointermove`, function (ev) {
+        if (STATE.dragNodeId) {
+          const dx = (ev.clientX - STATE.dragStartClientX) / STATE.scale;
+          const dy = (ev.clientY - STATE.dragStartClientY) / STATE.scale;
+          if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+            STATE.dragMoved = true;
+          }
+          const nx = Math.max(95, Math.min(WORLD_W - 95, STATE.dragNodeStartX + dx));
+          const ny = Math.max(55, Math.min(WORLD_H - 55, STATE.dragNodeStartY + dy));
+          STATE.positions[STATE.dragNodeId] = { x: nx, y: ny };
+
+          const nodeEl = document.getElementById(`node-${STATE.dragNodeId}`);
+          if (nodeEl) {
+            nodeEl.style.left = `${nx}px`;
+            nodeEl.style.top = `${ny}px`;
+          }
+          updateEdgesPositionsOnly();
+          return;
+        }
+
+        if (STATE.isPanning) {
+          const dx = ev.clientX - STATE.panStartClientX;
+          const dy = ev.clientY - STATE.panStartClientY;
+          if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+            STATE.dragMoved = true;
+          }
+          STATE.panX = STATE.panStartX + dx;
+          STATE.panY = STATE.panStartY + dy;
+          applyTransform();
+        }
+      });
+
+      window.addEventListener(`pointerup`, function () {
+        if (STATE.dragNodeId) {
+          const releasedId = STATE.dragNodeId;
+          const nodeEl = document.getElementById(`node-${releasedId}`);
+          if (nodeEl) nodeEl.classList.remove(`dragging`);
+          STATE.dragNodeId = null;
+
+          if (!STATE.dragMoved) {
+            if (STATE.selectedCharId === releasedId) {
+              clearSelection();
+            } else {
+              selectCharacter(releasedId, false);
+            }
+          } else {
+            persistState();
+          }
+          return;
+        }
+
+        if (STATE.isPanning) {
+          STATE.isPanning = false;
+          stage.classList.remove(`panning`);
+          if (!STATE.dragMoved && (STATE.selectedCharId || STATE.selectedEdgeId)) {
+            clearSelection();
+          }
+        }
+      });
+
+      stage.addEventListener(`wheel`, function (ev) {
+        ev.preventDefault();
+        const delta = ev.deltaY < 0 ? 0.1 : -0.1;
+        zoomBy(delta, ev.clientX, ev.clientY);
+      }, { passive: false });
+
+      if (modalOverlay) {
+        modalOverlay.addEventListener(`click`, function (ev) {
+          if (ev.target === modalOverlay) closeDetailModal();
+        });
+      }
+
+      window.addEventListener(`keydown`, function (ev) {
+        if (ev.key === `Escape`) {
+          const modal = document.getElementById(`detail-modal`);
+          if (modal && modal.classList.contains(`open`)) {
+            closeDetailModal();
+          } else if (STATE.selectedCharId || STATE.selectedEdgeId) {
+            clearSelection();
+          }
+        }
+      });
+
+      window.addEventListener(`resize`, function () {
+        fitGraphToStage();
+      });
+    }
+
+    async function persistState() {
+      if (!window.notebookAppApi || typeof window.notebookAppApi.setAppState !== `function`) return;
+      try {
+        await window.notebookAppApi.setAppState({
+          positions: STATE.positions,
+          selectedCharId: STATE.selectedCharId,
+          activeFaction: STATE.activeFaction,
+          showEdgeLabels: STATE.showEdgeLabels
+        });
+      } catch (err) {
+        /* Ignore storage errors gracefully */
+      }
+    }
+
+    async function initApp() {
+      buildSvgMarkers();
+      renderZonePlates();
+
+      if (window.notebookAppApi && typeof window.notebookAppApi.getAppState === `function`) {
+        try {
+          const saved = await window.notebookAppApi.getAppState();
+          if (saved && typeof saved === `object`) {
+            if (saved.positions && typeof saved.positions === `object`) {
+              CHARACTERS.forEach(function (c) {
+                const p = saved.positions[c.id];
+                if (p && typeof p.x === `number` && typeof p.y === `number`) {
+                  STATE.positions[c.id] = { x: p.x, y: p.y };
+                }
+              });
+            }
+            if (typeof saved.activeFaction === `string` && (saved.activeFaction === `all` || FACTIONS[saved.activeFaction])) {
+              STATE.activeFaction = saved.activeFaction;
+            }
+            if (typeof saved.selectedCharId === `string` && getChar(saved.selectedCharId)) {
+              STATE.selectedCharId = saved.selectedCharId;
+            }
+            if (typeof saved.showEdgeLabels === `boolean`) {
+              STATE.showEdgeLabels = saved.showEdgeLabels;
+            }
+          }
+        } catch (err) {
+          /* Start with default layout */
+        }
+      }
+
+      document.querySelectorAll(`#faction-filters .filter-btn`).forEach(function (btn) {
+        btn.classList.toggle(`active`, btn.dataset.faction === STATE.activeFaction);
+      });
+
+      const labelBtn = document.getElementById(`btn-toggle-labels`);
+      if (labelBtn) {
+        labelBtn.setAttribute(`aria-pressed`, STATE.showEdgeLabels ? `true` : `false`);
+        labelBtn.classList.toggle(`active-toggle`, STATE.showEdgeLabels);
+      }
+
+      renderNodes();
+      renderEdges();
+      applyHighlightAndFilters();
+      renderInspector();
+      fitGraphToStage();
+      attachStageEvents();
+
+      if (window.lucide && typeof window.lucide.createIcons === `function`) {
+        window.lucide.createIcons();
+      }
+
+      if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === `function`) {
+        window.notebookAppApi.notifyAppReady();
+      }
+    }
+
+    document.addEventListener(`DOMContentLoaded`, initApp);
+  </script>
+</body>
+</html>
