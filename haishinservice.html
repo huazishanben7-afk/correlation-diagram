@@ -1,0 +1,1968 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="artifact-type" content="dashboard">
+  <meta name="design-style" content="briefing">
+  <title>中国ドラマ動画配信サービス 一言特徴＆徹底比較ガイド</title>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Serif+JP:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/lucide@1.43.0/dist/umd/lucide.min.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+
+      /* Page and surfaces: Briefing warm stone-white paper */
+      --background: #faf9f5;
+      --surface-container-low: #ffffff;
+      --surface-container: #f1efe8;
+      --surface-container-high: #e6e2d6;
+
+      /* Ink */
+      --on-surface: #17181a;
+      --on-surface-variant: #56585c;
+
+      /* Rules */
+      --outline: #17181a;
+      --outline-variant: #dedad0;
+      --border-soft: #c8c4b8;
+
+      /* Accents */
+      --primary: #17181a;
+      --on-primary: #faf9f5;
+      --primary-container: #f2b705;
+      --on-primary-container: #17181a;
+      --secondary: #1f4e5f;
+      --secondary-soft: #e6eff2;
+      --tertiary: #785008;
+      --tertiary-soft: #f5e6c4;
+      --error: #b42318;
+      --on-error: #ffffff;
+      --error-soft: #fdecec;
+
+      /* Data series */
+      --data-1: #1f4e5f;
+      --data-2: #d99000;
+      --data-3: #2b6e52;
+      --data-4: #b84a39;
+      --data-context: #c4bfb2;
+
+      /* Fonts (Japanese first per non-Latin rules) */
+      --font-headline: 'Noto Serif JP', 'Source Serif 4', serif;
+      --font-body: 'Noto Sans JP', 'Plus Jakarta Sans', sans-serif;
+      --font-label: 'Geist Mono', 'Noto Sans JP', monospace;
+
+      /* Shape */
+      --rounded: 0.25rem;
+      --rounded-lg: 0.375rem;
+      --rounded-full: 0.25rem;
+
+      /* Style effects */
+      --section-rule: 1.5px solid var(--outline);
+      --card-border: 1px solid var(--outline-variant);
+      --card-shadow-active: 0 0 0 2px var(--secondary);
+      --badge-radius: 2px;
+      --heading-tracking: -0.02em;
+      --label-tracking: 0.08em;
+
+      /* Shared tokens */
+      --positive: #2b6e52;
+      --positive-soft: #e7f3ed;
+      --warning: #785008;
+      --warning-soft: #f5e6c4;
+      --focus: #1f4e5f;
+
+      /* Dashboard type scale */
+      --display-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.25rem);
+      --headline-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
+      --subhead-size: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+      --body-size: clamp(0.9375rem, 0.9rem + 0.15vw, 1rem);
+      --label-size: 0.75rem;
+
+      /* Spacing scale */
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2.5rem;
+      --space-2xl: 4rem;
+
+      /* Motion */
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+      --dur-micro: 120ms;
+      --dur-short: 220ms;
+      --dur-long: 420ms;
+    }
+
+    /* Base reset */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { overflow-x: clip; margin: 0; padding: 0; }
+    header { position: static !important; }
+
+    body {
+      background-color: var(--background);
+      color: var(--on-surface);
+      font-family: var(--font-body);
+      font-size: var(--body-size);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input, select, textarea {
+      font-family: inherit;
+      color: inherit;
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .page-grid {
+      display: grid;
+      gap: var(--space-xl);
+      padding: var(--space-lg);
+      max-width: 1240px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+    .page-grid * { min-width: 0; }
+
+    /* Briefing defining treatment 1: Dossier section bar */
+    .dossier-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-sm);
+      border-bottom: var(--section-rule);
+      padding-bottom: var(--space-sm);
+      margin-bottom: var(--space-md);
+    }
+
+    .dossier-pill {
+      background: var(--primary-container);
+      color: var(--on-primary-container);
+      font-family: var(--font-body);
+      font-weight: 700;
+      font-size: 0.75rem;
+      letter-spacing: var(--label-tracking);
+      text-transform: uppercase;
+      padding: 0.2rem 0.55rem;
+      border-radius: var(--badge-radius);
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .dossier-meta {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .dossier-meta .mono-en {
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* Briefing defining treatment 2: Editorial serif headline + petrol-slate standfirst */
+    .title {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: var(--display-size);
+      letter-spacing: var(--heading-tracking);
+      line-height: 1.2;
+      color: var(--on-surface);
+      margin: 0;
+    }
+
+    .section-heading {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: var(--headline-size);
+      line-height: 1.3;
+      color: var(--on-surface);
+      margin: 0 0 var(--space-xs) 0;
+    }
+
+    .standfirst {
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: var(--subhead-size);
+      color: var(--secondary);
+      margin: var(--space-sm) 0 0 0;
+      max-width: 65ch;
+      line-height: 1.55;
+    }
+
+    /* Briefing defining treatment 3: Crisp white bordered figure cards */
+    .figure-card {
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-md) var(--space-lg);
+    }
+
+    .figure-card .value {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+
+    /* Briefing defining treatment 4: Numbered index badges */
+    .index-num {
+      font-family: var(--font-label);
+      font-weight: 600;
+      font-size: var(--label-size);
+      color: var(--secondary);
+      background: var(--surface-container);
+      padding: 0.125rem 0.4rem;
+      border-radius: var(--badge-radius);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Briefing defining treatment 5: Warm stone sidebar / methodology callout */
+    .aside-box {
+      background: var(--surface-container);
+      border-top: var(--section-rule);
+      border-radius: 0 0 var(--rounded-lg) var(--rounded-lg);
+      padding: var(--space-md) var(--space-lg);
+    }
+
+    /* Hero Top-Line 3 Pillars */
+    .hero-pillars {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-md);
+      margin-top: var(--space-lg);
+    }
+
+    .pillar-btn {
+      text-align: left;
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-md);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+      min-height: 44px;
+      transition: background-color var(--dur-short) var(--ease-out), box-shadow var(--dur-short) var(--ease-out), transform var(--dur-short) var(--ease-out);
+    }
+
+    .pillar-btn:hover {
+      background: var(--surface-container);
+      box-shadow: var(--card-shadow-active);
+      transform: translateY(-1px);
+    }
+
+    .pillar-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      width: 100%;
+    }
+
+    .pillar-goal {
+      font-size: var(--label-size);
+      font-weight: 700;
+      color: var(--secondary);
+    }
+
+    .pillar-service {
+      font-family: var(--font-headline);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--on-surface);
+    }
+
+    .pillar-metric {
+      font-size: 0.875rem;
+      color: var(--on-surface-variant);
+      line-height: 1.45;
+    }
+
+    /* Controls bar */
+    .controls-panel {
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-md) var(--space-lg);
+      display: grid;
+      gap: var(--space-md);
+      margin-bottom: var(--space-lg);
+    }
+
+    .purpose-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    .purpose-label {
+      font-size: var(--label-size);
+      font-weight: 700;
+      color: var(--on-surface-variant);
+      margin-right: var(--space-xs);
+    }
+
+    .filter-btn {
+      min-height: 44px;
+      padding: 0.45rem 0.9rem;
+      border-radius: var(--rounded);
+      border: 1px solid var(--border-soft);
+      background: var(--surface-container-low);
+      color: var(--on-surface);
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out);
+    }
+
+    .filter-btn:hover {
+      background: var(--surface-container);
+    }
+
+    .filter-btn[aria-pressed="true"] {
+      background: var(--primary);
+      color: var(--on-primary);
+      border-color: var(--primary);
+    }
+
+    .filter-inputs-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: end;
+      gap: var(--space-md);
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+      flex: 1 1 220px;
+    }
+
+    .field-group.compact {
+      flex: 0 1 220px;
+    }
+
+    .field-label {
+      font-size: var(--label-size);
+      font-weight: 700;
+      color: var(--on-surface-variant);
+    }
+
+    .text-input, .select-input {
+      min-height: 44px;
+      padding: 0.5rem 0.85rem;
+      border-radius: var(--rounded);
+      border: 1px solid var(--border-soft);
+      background: var(--background);
+      font-size: 0.9375rem;
+      color: var(--on-surface);
+      transition: box-shadow var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+    }
+
+    .select-input {
+      padding-right: 2rem;
+    }
+
+    .btn-secondary {
+      min-height: 44px;
+      padding: 0.5rem 1rem;
+      border-radius: var(--rounded);
+      border: 1px solid var(--border-soft);
+      background: var(--surface-container-low);
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-xs);
+      transition: background-color var(--dur-micro) var(--ease-out);
+    }
+
+    .btn-secondary:hover {
+      background: var(--surface-container-high);
+    }
+
+    .btn-primary {
+      min-height: 44px;
+      padding: 0.5rem 1.1rem;
+      border-radius: var(--rounded);
+      border: 1px solid var(--primary);
+      background: var(--primary);
+      color: var(--on-primary);
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-xs);
+      transition: opacity var(--dur-micro) var(--ease-out);
+    }
+
+    .btn-primary:hover {
+      opacity: 0.9;
+    }
+
+    /* Main 2-col Explorer Workspace */
+    .explorer-workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+      gap: var(--space-lg);
+      align-items: start;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(270px, 100%), 1fr));
+      gap: var(--space-md);
+    }
+
+    .service-card-wrap {
+      container-type: inline-size;
+    }
+
+    .service-card {
+      width: 100%;
+      text-align: left;
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-md);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      height: 100%;
+      transition: background-color var(--dur-short) var(--ease-out), box-shadow var(--dur-short) var(--ease-out), transform var(--dur-short) var(--ease-out);
+    }
+
+    .service-card:hover {
+      background: var(--surface-container);
+      transform: translateY(-2px);
+    }
+
+    .service-card.is-selected {
+      box-shadow: var(--card-shadow-active);
+      background: var(--surface-container-low);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+
+    .card-title-group {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    .service-name {
+      font-family: var(--font-headline);
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: var(--on-surface);
+      margin: 0;
+    }
+
+    .tier-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.15rem 0.45rem;
+      border-radius: var(--rounded);
+      white-space: nowrap;
+    }
+
+    .tier-best {
+      background: var(--primary-container);
+      color: var(--on-primary-container);
+    }
+
+    .tier-hot {
+      background: var(--secondary-soft);
+      color: var(--secondary);
+    }
+
+    .tier-value {
+      background: var(--positive-soft);
+      color: var(--positive);
+    }
+
+    .tier-niche {
+      background: var(--tertiary-soft);
+      color: var(--tertiary);
+    }
+
+    .tier-caution {
+      background: var(--surface-container);
+      color: var(--on-surface-variant);
+    }
+
+    .one-liner {
+      font-size: 0.9375rem;
+      font-weight: 700;
+      color: var(--secondary);
+      line-height: 1.45;
+      margin: 0;
+      padding: var(--space-xs) var(--space-sm);
+      background: var(--background);
+      border-left: 3px solid var(--secondary);
+      border-radius: 0 var(--rounded) var(--rounded) 0;
+    }
+
+    .card-price-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      padding-top: var(--space-xs);
+      border-top: 1px solid var(--outline-variant);
+    }
+
+    .price-main {
+      font-family: var(--font-headline);
+      font-size: 1.1875rem;
+      font-weight: 700;
+      color: var(--on-surface);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .price-sub {
+      font-size: 0.78rem;
+      color: var(--on-surface-variant);
+      font-weight: 600;
+    }
+
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-top: auto;
+    }
+
+    .mini-tag {
+      font-size: 0.75rem;
+      padding: 0.12rem 0.45rem;
+      border-radius: var(--rounded);
+      background: var(--surface-container);
+      color: var(--on-surface-variant);
+      font-weight: 500;
+    }
+
+    .card-cta-hint {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--secondary);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.2rem;
+    }
+
+    /* Detail Inspector Panel */
+    .inspector-card {
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-top: 3px solid var(--secondary);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+      position: sticky;
+      top: var(--space-md);
+    }
+
+    .inspector-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      border-bottom: var(--card-border);
+      padding-bottom: var(--space-md);
+    }
+
+    .inspector-title {
+      font-family: var(--font-headline);
+      font-size: 1.45rem;
+      font-weight: 700;
+      margin: var(--space-xs) 0 0 0;
+      color: var(--on-surface);
+    }
+
+    .inspector-oneliner {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--secondary);
+      background: var(--secondary-soft);
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--rounded);
+      margin: 0;
+    }
+
+    .inspector-metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-sm);
+    }
+
+    .metric-box {
+      background: var(--background);
+      border: var(--card-border);
+      border-radius: var(--rounded);
+      padding: var(--space-sm) var(--space-md);
+    }
+
+    .metric-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--on-surface-variant);
+      display: block;
+    }
+
+    .metric-val {
+      font-family: var(--font-headline);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--on-surface);
+      font-variant-numeric: tabular-nums;
+      margin-top: 0.15rem;
+      display: block;
+    }
+
+    .detail-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 0.45rem;
+    }
+
+    .detail-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-sm);
+      font-size: 0.9125rem;
+      line-height: 1.55;
+    }
+
+    .detail-icon {
+      flex-shrink: 0;
+      margin-top: 0.2rem;
+      color: var(--positive);
+    }
+
+    .caution-box {
+      background: var(--warning-soft);
+      border-left: 3px solid var(--warning);
+      padding: var(--space-sm) var(--space-md);
+      border-radius: 0 var(--rounded) var(--rounded) 0;
+      font-size: 0.875rem;
+      color: var(--on-surface);
+    }
+
+    .caution-title {
+      font-weight: 700;
+      color: var(--warning);
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+      margin-bottom: 0.2rem;
+    }
+
+    .works-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+      align-items: center;
+    }
+
+    .work-chip {
+      background: var(--surface-container);
+      color: var(--on-surface);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      padding: 0.2rem 0.55rem;
+      border-radius: var(--rounded);
+    }
+
+    .inspector-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      padding-top: var(--space-sm);
+      border-top: var(--card-border);
+    }
+
+    /* Section 2: Cost Chart & Simulator */
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+      gap: var(--space-lg);
+      align-items: start;
+    }
+
+    .chart-title {
+      margin: 0;
+      font-family: var(--font-headline);
+      font-size: 1.15rem;
+    }
+
+    .chart-subtitle {
+      font-size: 0.8125rem;
+      color: var(--on-surface-variant);
+    }
+
+    .sim-title {
+      margin: var(--space-xs) 0 0 0;
+      font-family: var(--font-headline);
+      font-size: 1.15rem;
+    }
+
+    .sim-result-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--on-surface-variant);
+    }
+
+    .sim-advice-text {
+      font-size: 0.85rem;
+      margin-top: 0.35rem;
+      color: var(--on-surface);
+    }
+
+    .sim-sub-label {
+      color: var(--on-surface-variant);
+    }
+
+    .empty-title {
+      font-weight: 700;
+      margin: 0 0 var(--space-sm) 0;
+    }
+
+    .empty-desc {
+      font-size: 0.875rem;
+      color: var(--on-surface-variant);
+      margin: 0 0 var(--space-md) 0;
+    }
+
+    .inspector-head-badges {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    .inspector-sublabel {
+      margin-bottom: var(--space-xs);
+    }
+
+    .caution-body {
+      margin: 0 0 var(--space-xs) 0;
+      line-height: 1.55;
+    }
+
+    .caution-target {
+      margin: 0;
+      font-weight: 700;
+      color: var(--on-surface);
+    }
+
+    .table-service-name {
+      font-weight: 700;
+      font-family: var(--font-headline);
+    }
+
+    .table-tier-badge {
+      display: inline-block;
+      margin-top: var(--space-xs);
+    }
+
+    .table-oneliner {
+      font-weight: 600;
+      color: var(--secondary);
+    }
+
+    .table-price-sub {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--on-surface-variant);
+      white-space: normal;
+    }
+
+    .table-works-sub {
+      font-size: 0.78rem;
+      color: var(--on-surface-variant);
+      margin-top: 0.15rem;
+    }
+
+    .chart-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-md);
+    }
+
+    .chart-toggle-group {
+      display: inline-flex;
+      gap: var(--space-xs);
+      background: var(--surface-container);
+      padding: 0.25rem;
+      border-radius: var(--rounded);
+    }
+
+    .toggle-btn {
+      min-height: 44px;
+      padding: 0.4rem 0.85rem;
+      border: 0;
+      border-radius: var(--rounded);
+      background: transparent;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--on-surface-variant);
+    }
+
+    .toggle-btn[aria-pressed="true"] {
+      background: var(--surface-container-low);
+      color: var(--on-surface);
+      box-shadow: 0 1px 2px var(--outline-variant);
+    }
+
+    .chart-wrap {
+      position: relative;
+      min-height: 390px;
+      width: 100%;
+    }
+
+    .chart-note {
+      font-size: 0.8125rem;
+      color: var(--on-surface-variant);
+      margin-top: var(--space-sm);
+    }
+
+    /* Simulator */
+    .sim-card {
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    .sim-result-banner {
+      background: var(--surface-container);
+      border-top: var(--section-rule);
+      padding: var(--space-md);
+      border-radius: 0 0 var(--rounded) var(--rounded);
+    }
+
+    .sim-big-num {
+      font-family: var(--font-headline);
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--secondary);
+      font-variant-numeric: tabular-nums;
+      line-height: 1.2;
+    }
+
+    .sim-sub-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-sm);
+      margin-top: var(--space-sm);
+      padding-top: var(--space-sm);
+      border-top: var(--card-border);
+      font-size: 0.85rem;
+    }
+
+    /* Section 3: Comparison Table */
+    .table-wrap {
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-radius: var(--rounded-lg);
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+      font-size: 0.875rem;
+    }
+
+    thead th {
+      text-align: left;
+      padding: var(--space-sm) var(--space-md);
+      border-bottom: var(--section-rule);
+      background: var(--surface-container);
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 700;
+      color: var(--on-surface);
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--outline-variant);
+      cursor: pointer;
+      transition: background-color var(--dur-micro) var(--ease-out);
+    }
+
+    tbody tr:hover {
+      background: var(--surface-container);
+    }
+
+    tbody tr.is-active-row {
+      background: var(--secondary-soft);
+    }
+
+    tbody td {
+      padding: var(--space-sm) var(--space-md);
+      vertical-align: top;
+      line-height: 1.5;
+    }
+
+    .td-num {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .sort-th-btn {
+      background: transparent;
+      border: 0;
+      padding: 0;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      min-height: 44px;
+    }
+
+    .empty-state {
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-xl);
+      text-align: center;
+      grid-column: 1 / -1;
+    }
+
+    .footer-source {
+      border-top: var(--section-rule);
+      padding-top: var(--space-md);
+      font-size: 0.8125rem;
+      color: var(--on-surface-variant);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+
+    /* Container & Responsive Breakpoints */
+    @container (max-width: 260px) {
+      .card-price-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+
+    @media (max-width: 960px) {
+      .explorer-workspace,
+      .analytics-grid {
+        grid-template-columns: 1fr;
+      }
+      .inspector-card {
+        position: static;
+      }
+      .hero-pillars {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page-grid {
+        padding: var(--space-md);
+        gap: var(--space-lg);
+      }
+      .inspector-metrics,
+      .sim-sub-grid {
+        grid-template-columns: 1fr;
+      }
+      .chart-wrap {
+        min-height: 340px;
+      }
+      aside.inspector-card {
+        display: flex;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-grid">
+
+    <!-- Header / Masthead -->
+    <header>
+      <div class="dossier-bar">
+        <span class="dossier-pill">VOD GUIDE</span>
+        <span class="dossier-meta"><span class="mono-en">2026/11/23</span> 時点データ・全9サービス収録</span>
+      </div>
+      <h1 class="title">中国ドラマ動画配信サービス 一言特徴＆徹底比較ガイド</h1>
+      <p class="standfirst">
+        「作品数のU-NEXT」「中国リアタイのNetflix」「無料狙いのABEMA」——9つの主要サービスの特徴をひと言で整理し、料金・実質コスト・注意点まで直感的に比較できます。
+      </p>
+
+      <!-- 3-Second Beginner Pillars -->
+      <div class="hero-pillars" aria-label="目的別・初心者におすすめの3大サービス">
+        <button type="button" class="pillar-btn" onclick="focusService('unext', true)">
+          <div class="pillar-top">
+            <span class="pillar-goal">たくさん観たいなら一択</span>
+            <span class="index-num">01</span>
+          </div>
+          <div class="pillar-service">U-NEXT</div>
+          <div class="pillar-metric"><strong>973作品</strong>で圧倒的1位。1,200pt還元で実質989円〜</div>
+        </button>
+
+        <button type="button" class="pillar-btn" onclick="focusService('netflix', true)">
+          <div class="pillar-top">
+            <span class="pillar-goal">リアタイ＆最新トレンド</span>
+            <span class="index-num">02</span>
+          </div>
+          <div class="pillar-service">Netflix</div>
+          <div class="pillar-metric">日本からVPNなしで<strong>中国と字幕付き同時配信</strong>はここだけ</div>
+        </button>
+
+        <button type="button" class="pillar-btn" onclick="focusService('abema', true)">
+          <div class="pillar-top">
+            <span class="pillar-goal">お金を掛けずに観たい</span>
+            <span class="index-num">03</span>
+          </div>
+          <div class="pillar-service">ABEMA</div>
+          <div class="pillar-metric"><strong>1ヶ月無料</strong>で観られる作品が急増。独自上陸作も</div>
+        </button>
+      </div>
+    </header>
+
+    <!-- Section 1: Interactive Service Matrix & Detail Inspector -->
+    <section aria-labelledby="sec1-heading">
+      <div class="dossier-bar">
+        <span class="dossier-pill">01 OVERVIEW</span>
+        <span class="dossier-meta">目的別に絞り込み・カードをクリックして詳細と注意点を表示</span>
+      </div>
+      <h2 id="sec1-heading" class="section-heading">各サービス「一言まとめ」エクスプローラー</h2>
+
+      <div class="controls-panel">
+        <div class="purpose-row" role="group" aria-label="視聴目的で絞り込み">
+          <span class="purpose-label">目的で絞る：</span>
+          <button type="button" class="filter-btn" data-filter="all" aria-pressed="true" onclick="setPurposeFilter('all')">すべて (9)</button>
+          <button type="button" class="filter-btn" data-filter="volume" aria-pressed="false" onclick="setPurposeFilter('volume')">作品数重視</button>
+          <button type="button" class="filter-btn" data-filter="latest" aria-pressed="false" onclick="setPurposeFilter('latest')">最新・リアタイ</button>
+          <button type="button" class="filter-btn" data-filter="budget" aria-pressed="false" onclick="setPurposeFilter('budget')">コスパ・無料</button>
+          <button type="button" class="filter-btn" data-filter="niche" aria-pressed="false" onclick="setPurposeFilter('niche')">良作発掘・独自作</button>
+          <button type="button" class="filter-btn" data-filter="caution" aria-pressed="false" onclick="setPurposeFilter('caution')">サブ・注意枠</button>
+        </div>
+
+        <div class="filter-inputs-row">
+          <div class="field-group">
+            <label for="search-input" class="field-label">キーワード検索（サービス名・作品名・特徴）</label>
+            <input id="search-input" type="text" class="text-input" placeholder="例：逐玉、問心、字幕、無料、セール" oninput="handleSearch(this.value)">
+          </div>
+
+          <div class="field-group compact">
+            <label for="sort-select" class="field-label">並び順</label>
+            <select id="sort-select" class="select-input" onchange="handleSort(this.value)">
+              <option value="recommend">おすすめ・紹介順</option>
+              <option value="price-asc">月額料金が安い順</option>
+              <option value="price-desc">月額料金が高い順</option>
+            </select>
+          </div>
+
+          <button type="button" class="btn-secondary" onclick="resetFilters()">条件をリセット</button>
+        </div>
+      </div>
+
+      <div class="explorer-workspace">
+        <div id="cards-grid" class="cards-grid" aria-live="polite"></div>
+
+        <aside id="detail-panel" class="inspector-card" aria-label="選択中のサービス詳細">
+          <!-- Populated dynamically -->
+        </aside>
+      </div>
+    </section>
+
+    <!-- Section 2: Pricing Chart & Effective Cost Simulator -->
+    <section aria-labelledby="sec2-heading">
+      <div class="dossier-bar">
+        <span class="dossier-pill">02 COST &amp; VALUE</span>
+        <span class="dossier-meta">定価 vs 実質価格・最安プラン・お得ワザの比較</span>
+      </div>
+      <h2 id="sec2-heading" class="section-heading">料金・実質コスパ比較チャート＆お得計算機</h2>
+
+      <div class="analytics-grid">
+        <div class="figure-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">サービス別 月額料金比較（税込）</h3>
+              <span class="chart-subtitle">棒グラフをクリックすると上の詳細パネルが開きます</span>
+            </div>
+            <div class="chart-toggle-group" role="group" aria-label="料金表示モード切替">
+              <button type="button" id="mode-standard" class="toggle-btn" aria-pressed="true" onclick="setChartMode('standard')">通常月額で比較</button>
+              <button type="button" id="mode-effective" class="toggle-btn" aria-pressed="false" onclick="setChartMode('effective')">実質・最安込みで比較</button>
+            </div>
+          </div>
+
+          <div class="chart-wrap">
+            <canvas id="price-chart" aria-label="動画配信サービスの月額料金比較グラフ"></canvas>
+          </div>
+          <p id="chart-caption" class="chart-note">
+            ※ U-NEXTは定価2,189円ですが、毎月付与される1,200ptを考慮すると実質989円。「実質・最安込み」モードでAmazonセール価格やNetflix広告付きプランとの差を確認できます。
+          </p>
+        </div>
+
+        <div class="sim-card">
+          <div>
+            <span class="index-num">SIMULATOR</span>
+            <h3 class="sim-title">U-NEXTお得買い方 ＆ プラン比較計算</h3>
+          </div>
+
+          <div class="field-group">
+            <label for="sim-unext-route" class="field-label">U-NEXTの購入ルート</label>
+            <select id="sim-unext-route" class="select-input" onchange="updateSimulator()">
+              <option value="2189">公式通常月額（2,189円）</option>
+              <option value="1751">Amazon通常セール：2ヶ月に1度（1,751円）</option>
+              <option value="1532">Amazonブラックフライデー：年1回（1,532円）</option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label for="sim-unext-points" class="field-label">毎月1,200ポイントの使い道（90日間有効）</label>
+            <select id="sim-unext-points" class="select-input" onchange="updateSimulator()">
+              <option value="1200">新作有料ドラマや漫画・書籍で使い切る（-1,200円相当）</option>
+              <option value="0">見放題だけ観てポイントを使わない（0円換算）</option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label for="sim-netflix-plan" class="field-label">比較するNetflixプラン</label>
+            <select id="sim-netflix-plan" class="select-input" onchange="updateSimulator()">
+              <option value="990">広告付きスタンダード（990円・フルHD）</option>
+              <option value="1790">スタンダード（1,790円・広告なし）</option>
+              <option value="2590">プレミアム（2,590円・4K/空間オーディオ）</option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label for="sim-prime-status" class="field-label">Prime Video＋チャンネルアジア加入条件</label>
+            <select id="sim-prime-status" class="select-input" onchange="updateSimulator()">
+              <option value="660">既にAmazonプライム会員（追加660円のみ）</option>
+              <option value="1260">プライム非会員（本体600円＋660円＝1,260円）</option>
+            </select>
+          </div>
+
+          <div class="sim-result-banner" aria-live="polite">
+            <div class="sim-result-label">あなたの条件でのU-NEXT実質月額</div>
+            <div id="sim-unext-effective" class="sim-big-num">989円 / 月</div>
+            <div id="sim-advice" class="sim-advice-text"></div>
+            <div class="sim-sub-grid">
+              <div>
+                <span class="sim-sub-label">Netflixとの差額</span><br>
+                <strong id="sim-diff-netflix">U-NEXT実質の方が1円安い</strong>
+              </div>
+              <div>
+                <span class="sim-sub-label">チャンネルアジアとの差</span><br>
+                <strong id="sim-diff-prime">実質差額 +329円</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Full Comparison Table -->
+    <section aria-labelledby="sec3-heading">
+      <div class="dossier-bar">
+        <span class="dossier-pill">03 INDEX TABLE</span>
+        <span class="dossier-meta">全9サービス横断スペック表・行クリックで詳細を上に表示</span>
+      </div>
+      <h2 id="sec3-heading" class="section-heading">全配信サービス一覧比較表</h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>
+                <button type="button" class="sort-th-btn" onclick="toggleTableSort('order')">
+                  サービス名 <span id="sort-ind-order" aria-hidden="true">↕</span>
+                </button>
+              </th>
+              <th>一言特徴</th>
+              <th>
+                <button type="button" class="sort-th-btn" onclick="toggleTableSort('price')">
+                  月額（税込） <span id="sort-ind-price" aria-hidden="true">↕</span>
+                </button>
+              </th>
+              <th>ポイント・無料枠</th>
+              <th>作品傾向・注目タイトル</th>
+              <th>おすすめ対象・注意点</th>
+            </tr>
+          </thead>
+          <tbody id="comparison-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer class="footer-source">
+      <span>出典：提供メモ「中国ドラマ配信サービス比較まとめ」（2026年11月23日時点の価格・配信状況に基づく）</span>
+      <span>※表示価格はすべて税込。配信作品・無料対象・キャンペーン期限は時期により変動します。</span>
+    </footer>
+  </div>
+
+  <script>
+    const servicesData = [
+      {
+        id: `unext`,
+        order: 1,
+        name: `U-NEXT`,
+        tier: `イチオシ`,
+        tierClass: `tier-best`,
+        oneLiner: `中国ドラマ973作品でダントツ！たくさん観たいなら一択`,
+        priceMain: `2,189円`,
+        priceNum: 2189,
+        effectiveNum: 989,
+        priceSub: `1,200pt還元で実質989円`,
+        effectiveLabel: `実質989円（定価2,189円−1,200pt） / セール時実質332円〜`,
+        pointsText: `毎月1,200pt付与（90日失効）／31日間無料お試し`,
+        worksCount: `973作品（2026/11/23現在）`,
+        purposes: [`volume`, `latest`],
+        tags: [`973作品で1位`, `最新・話題作充実`, `31日無料`, `Amazonセール有`],
+        strengths: [
+          `中国ドラマの取り扱い作品数が973作品（2026/11/23時点）で他社を圧倒。`,
+          `最新作や話題作も積極的に取り入れ、5年以上メインで使い続けられる鉄板サービス。`,
+          `毎月1,200円分のポイントが付与されるため、有料の新作中国ドラマや漫画・書籍購入にも活用可能。`,
+          `31日間の無料お試し期間あり。会員向けにまれに1ヶ月無料の再登録案内が届くことも。`
+        ],
+        caution: `ポイントは90日間で失効します。安く入るならAmazonで2ヶ月に1度ほどのセール（通常1,751円／年1回ブラックフライデー1,532円、1,200pt付き）が最安ですが、オンラインギフトコードの有効期限は原則「購入月の翌月月末まで」のため買いだめ注意。`,
+        targetAudience: `中国ドラマをとにかくたくさん観たい方（初心者からヘビー視聴者まで一択）`,
+        works: [`新作有料作`, `話題作多数`, `漫画・書籍も対象`]
+      },
+      {
+        id: `netflix`,
+        order: 2,
+        name: `Netflix`,
+        tier: `リアタイ唯一`,
+        tierClass: `tier-hot`,
+        oneLiner: `中国とのリアタイ配信＆最新トレンドを追う黒船`,
+        priceMain: `990円〜`,
+        priceNum: 1790,
+        effectiveNum: 990,
+        priceSub: `広告付990円 / 標準1,790円 / 4K 2,590円`,
+        effectiveLabel: `広告付き990円 / スタンダード1,790円 / プレミアム2,590円`,
+        pointsText: `ポイント付与なし（プラン別画質・広告差あり）`,
+        worksCount: `過去作追加中（U-NEXTより少なめ）`,
+        purposes: [`latest`],
+        tags: [`中国リアタイ字幕付`, `VPN不要`, `最新トレンド`, `値上げ済み`],
+        strengths: [
+          `2025年『五福の娘たち』、2026年『逐玉』の大ヒット以降、中国ドラマへの注力度が急上昇。`,
+          `国際版サービスを除き、日本からVPNなしで中国とのリアルタイム配信（字幕付き）を観られる唯一のサービス。`,
+          `過去作品もガンガン追加中で、最新トレンドを追うなら最適。`,
+          `990円の広告付きスタンダードから4K・空間オーディオ対応の2,590円プレミアムまで3段階から選択可能。`
+        ],
+        caution: `1年前より料金が値上げされています。過去作品の総数は2026/11/23時点ではU-NEXT等と比べると圧倒的に少ないため、旧作を網羅したい場合は要注意。`,
+        targetAudience: `中国とのリアルタイム配信を体験したい方、最新の大ヒット・トレンド作を追いたい方`,
+        works: [`五福の娘たち（2025）`, `逐玉（2026）`]
+      },
+      {
+        id: `fod`,
+        order: 3,
+        name: `FOD`,
+        tier: `コスパ・恋愛`,
+        tierClass: `tier-value`,
+        oneLiner: `U-NEXTより手頃に現代恋愛＆FOD独占作をそこそこ楽しむ`,
+        priceMain: `976円`,
+        priceNum: 976,
+        effectiveNum: 976,
+        priceSub: `iTunes決済980円 / 月100pt付与`,
+        effectiveLabel: `月額976円（iTunes Store決済は980円）`,
+        pointsText: `毎月100ポイント付与（有料作品あり）`,
+        worksCount: `非公表（そこそこの作品数）`,
+        purposes: [`budget`, `niche`],
+        tags: [`現代恋愛に強い`, `FOD独占増加中`, `月額1,000円以下`],
+        strengths: [
+          `最近中国ドラマに力を入れており、FOD独占配信作品も増加中。`,
+          `フジテレビ系列のため現代恋愛ドラマに強いラインナップで、U-NEXTでは配信していない作品も視聴可能。`,
+          `月額976円と手頃で、U-NEXTは少し高いと感じる層にちょうど良いバランス。`
+        ],
+        caution: `Amazonプライムビデオ内の「FODチャンネル」でも同作品が見られますが、プライム会員でない場合はプライム会費が加算されて割高になるため、非会員はFODへの直接登録がお得です。`,
+        targetAudience: `U-NEXTは高めと感じる方、現代恋愛ドラマやFOD独占作をそこそこ観たい方`,
+        works: [`現代恋愛ドラマ充実`, `FOD独占中国ドラマ`]
+      },
+      {
+        id: `lemino`,
+        order: 4,
+        name: `Lemino`,
+        tier: `良作発掘`,
+        tierClass: `tier-niche`,
+        oneLiner: `他社にない隠れた良作発掘＆dポイント・WOWOW提携に期待`,
+        priceMain: `1,540円`,
+        priceNum: 1540,
+        effectiveNum: 1540,
+        priceSub: `アプリ内1,650円 / 広告付無料作あり`,
+        effectiveLabel: `月額1,540円（アプリ内課金1,650円）※2026年2月値上げ`,
+        pointsText: `dポイント利用可／一部広告付き無料作品（入替制）`,
+        worksCount: `非公表（そこそこの作品数）`,
+        purposes: [`niche`],
+        tags: [`良質ラインナップ`, `問心おすすめ`, `WOWOW共同事業`, `dポイント対応`],
+        strengths: [
+          `あまり注目されていなかったものの良質な中国ドラマを仕入れており、U-NEXTやFODでは観られない作品も配信。`,
+          `個人的イチオシ作品として『問心』などをラインナップ。`,
+          `ドコモ系列のため有料作品の支払いにdポイントが使えて利便性が高い。一部、時期替わりで広告入り無料視聴作も。`,
+          `今年WOWOWとの共同事業化・提携が発表され、質の高いWOWOW作品の拡充に要注目。`
+        ],
+        caution: `2026年2月に月額料金が1,540円（アプリ内課金1,650円）へ値上げされています。`,
+        targetAudience: `dポイントを普段使っている方、U-NEXT等で有名作を一通り観終えた方`,
+        works: [`問心`]
+      },
+      {
+        id: `prime`,
+        order: 5,
+        name: `Amazonプライム・ビデオ（＋チャンネルアジア）`,
+        tier: `独自字幕・追加型`,
+        tierClass: `tier-niche`,
+        oneLiner: `本体だけでは作品少なめ。チャンネルアジア追加で特化型に`,
+        priceMain: `600円`,
+        priceNum: 600,
+        effectiveNum: 1260,
+        priceSub: `チャンネルアジア追加で実質1,260円`,
+        effectiveLabel: `本体600円（年5,900円）＋チャンネルアジア660円＝実質1,260円`,
+        pointsText: `プライム会員特典（最近本体に広告表示あり）`,
+        worksCount: `本体は少なめ／チャンネル追加で拡充`,
+        purposes: [`niche`, `caution`],
+        tags: [`二か国語字幕`, `まるわかり字幕`, `みるアジア後継`, `本体のみ非推奨`],
+        strengths: [
+          `年額5,900円（月換算約492円）とプライム会員自体の敷居が低い。`,
+          `追加チャンネル「チャンネルアジア」（月額660円・2025年3月末終了のみるアジアから移行）では、二か国語字幕やまるわかり字幕など独自機能が魅力。`,
+          `周翊然主演『君の羽が輝くまで』などチャンネルアジア独占の人気ドラマを視聴可能。`
+        ],
+        caution: `プライム・ビデオ本体自体は『星漢燦爛＜せいかんさんらん＞』等を扱うものの作品数が少なく入れ替わりも激しいため、中国ドラマ目当てだけで加入するのは非推奨。チャンネル追加時は実質1,260円と割高感あり。なお「エンタメアジア」「アジアプレミアム」等は特徴薄め。`,
+        targetAudience: `既存のAmazonプライム会員で、チャンネルアジア独占作や二か国語字幕を使いたい方`,
+        works: [`星漢燦爛＜せいかんさんらん＞`, `君の羽が輝くまで`]
+      },
+      {
+        id: `abema`,
+        order: 6,
+        name: `ABEMA`,
+        tier: `無料・穴場`,
+        tierClass: `tier-value`,
+        oneLiner: `お金を掛けずに観たいなら！1ヶ月無料作が急増＆独自上陸も`,
+        priceMain: `0円〜`,
+        priceNum: 0,
+        effectiveNum: 0,
+        priceSub: `入れ替わりで1ヶ月無料作品が充実`,
+        effectiveLabel: `無料視聴対象が大幅に増加中（作品は時期により入れ替わり）`,
+        pointsText: `無料で1ヶ月観られる作品多数`,
+        worksCount: `無料対象作品が増加中`,
+        purposes: [`budget`, `niche`],
+        tags: [`無料で観られる`, `独自日本上陸作`, `積極配信`],
+        strengths: [
+          `以前と比べて1ヶ月無料で観られる中国ドラマ作品が大幅に増加。`,
+          `気になっていた作品が無料対象になったタイミングでコストゼロで視聴できる点が最大の強み。`,
+          `今年独自に『スマイル・コード』（原題：失笑）を日本上陸させるなど中国ドラマ配信に積極的。`
+        ],
+        caution: `無料対象作品は入れ替わり制のため、見たい作品が無料公開されている期間を逃さずチェックする必要があります。`,
+        targetAudience: `お金を掛けずに中国ドラマを観たい方、無料になった注目作をピンポイントで楽しみたい方`,
+        works: [`スマイル・コード（原題：失笑）`]
+      },
+      {
+        id: `wowow`,
+        order: 7,
+        name: `WOWOWオンデマンド`,
+        tier: `最速・最高額`,
+        tierClass: `tier-niche`,
+        oneLiner: `月額最高額だが日本初上陸・最新作をいち早く観られる最速枠`,
+        priceMain: `2,530円`,
+        priceNum: 2530,
+        effectiveNum: 2530,
+        priceSub: `紹介サービス中でダントツ最高額`,
+        effectiveLabel: `月額2,530円（税込）`,
+        pointsText: `ポイント還元なし／配信は期間限定`,
+        worksCount: `WOWOW放送作品中心（期間限定）`,
+        purposes: [`latest`, `caution`],
+        tags: [`最新作最速上陸`, `期間限定配信`, `TV限定作あり`],
+        strengths: [
+          `中国ドラマの最新作をどこよりも早く日本に上陸させるテレビ局の配信サービス。`,
+          `ほぼWOWOWで放送している中国ドラマをオンデマンドでも視聴可能。`
+        ],
+        caution: `月額2,530円は紹介サービス中ダントツで高額。さらに配信作品は期間限定で、作品によってはテレビ放送のみでオンデマンド非配信の場合もあるため、見たい作品がなければ加入非推奨＆事前確認が必須。`,
+        targetAudience: `料金よりも「最新作をいち早く観たい！」ことを最優先する方`,
+        works: [`WOWOW先行上陸の最新中国ドラマ`]
+      },
+      {
+        id: `tver`,
+        order: 8,
+        name: `TVer`,
+        tier: `無料サブ`,
+        tierClass: `tier-caution`,
+        oneLiner: `BS放送作品を無料で拾える！BS環境がない人のサブ窓口`,
+        priceMain: `0円`,
+        priceNum: 0,
+        effectiveNum: 0,
+        priceSub: `完全無料（数作品程度）`,
+        effectiveLabel: `完全無料（日本の無料見逃し配信サービス）`,
+        pointsText: `無料（常時配信数はごくわずか）`,
+        worksCount: `数作品程度`,
+        purposes: [`budget`, `caution`],
+        tags: [`完全無料`, `BS放送の見逃し`, `番組表チェック`],
+        strengths: [
+          `日本の無料配信サービスとして会員登録不要・無料で手軽に利用可能。`,
+          `BSで放送された中国ドラマがまれに配信されるため、BS視聴環境がない家庭でも観られるチャンスがある。`
+        ],
+        caution: `中国ドラマの配信自体はほぼなく常時数作品程度のみ。メイン視聴には向かないため、番組表で目当ての作品がないか確認するサブ用途向け。`,
+        targetAudience: `BS環境がなく、たまたま放送された中国ドラマを無料で試したい方`,
+        works: [`BS放送の中国ドラマ（不定期）`]
+      },
+      {
+        id: `hulu`,
+        order: 9,
+        name: `Hulu`,
+        tier: `優先度低め`,
+        tierClass: `tier-caution`,
+        oneLiner: `有名サービスだが中国ドラマへの注力度は低く作品数は少なめ`,
+        priceMain: `1,320円`,
+        priceNum: 1320,
+        effectiveNum: 1320,
+        priceSub: `月額1,320円（税込）`,
+        effectiveLabel: `月額1,320円（税込）`,
+        pointsText: `見放題中心`,
+        worksCount: `かなり少ない`,
+        purposes: [`caution`],
+        tags: [`まれに限定作あり`, `中国ドラマ目的は非推奨`],
+        strengths: [
+          `国内有名配信サービスとしての安定感があり、まれにHuluでしか見られない作品が配信されることがある。`
+        ],
+        caution: `中国ドラマにはあまり力が入っておらず作品数がかなり少なめ。月額1,320円を払って中国ドラマ目的で新規加入するのはあまりおすすめしません。`,
+        targetAudience: `すでに他ジャンル目的でHuluを契約中で、ついでに限定作をチェックしたい方`,
+        works: [`一部Hulu限定配信作品`]
+      }
+    ];
+
+    let activePurpose = `all`;
+    let searchQuery = ``;
+    let currentSort = `recommend`;
+    let selectedId = `unext`;
+    let chartMode = `standard`;
+    let tableSortCol = `order`;
+    let tableSortDir = `asc`;
+    let priceChartInstance = null;
+
+    function getFilteredServices() {
+      const q = searchQuery.trim().toLowerCase();
+      const filtered = servicesData.filter(function(item) {
+        const matchesPurpose = activePurpose === `all` || item.purposes.indexOf(activePurpose) !== -1;
+        if (!matchesPurpose) return false;
+        if (!q) return true;
+        const haystack = [
+          item.name,
+          item.tier,
+          item.oneLiner,
+          item.priceMain,
+          item.priceSub,
+          item.caution,
+          item.targetAudience,
+          item.tags.join(` `),
+          item.strengths.join(` `),
+          item.works.join(` `)
+        ].join(` `).toLowerCase();
+        return haystack.indexOf(q) !== -1;
+      });
+
+      filtered.sort(function(a, b) {
+        if (currentSort === `price-asc`) return a.effectiveNum - b.effectiveNum || a.order - b.order;
+        if (currentSort === `price-desc`) return b.priceNum - a.priceNum || a.order - b.order;
+        return a.order - b.order;
+      });
+
+      return filtered;
+    }
+
+    function renderCards() {
+      const grid = document.getElementById(`cards-grid`);
+      if (!grid) return;
+
+      const list = getFilteredServices();
+      if (list.length === 0) {
+        grid.innerHTML = `<div class="empty-state">
+          <p class="empty-title">条件に一致する配信サービスが見つかりません</p>
+          <p class="empty-desc">検索キーワードや目的フィルターを変更してお試しください。</p>
+          <button type="button" class="btn-primary" onclick="resetFilters()">すべてのサービスを表示する</button>
+        </div>`;
+        return;
+      }
+
+      if (!list.some(function(s) { return s.id === selectedId; })) {
+        selectedId = list[0].id;
+      }
+
+      grid.innerHTML = list.map(function(s) {
+        const isSelected = s.id === selectedId;
+        const idxStr = String(s.order).padStart(2, `0`);
+        const tagsHtml = s.tags.slice(0, 3).map(function(t) {
+          return `<span class="mini-tag">${t}</span>`;
+        }).join(``);
+
+        return `<div class="service-card-wrap">
+          <button type="button" class="service-card ${isSelected ? `is-selected` : ``}" aria-pressed="${isSelected ? `true` : `false`}" onclick="focusService('${s.id}', false)">
+            <div class="card-header">
+              <div class="card-title-group">
+                <span class="index-num">${idxStr}</span>
+                <h3 class="service-name">${s.name}</h3>
+              </div>
+              <span class="tier-badge ${s.tierClass}">${s.tier}</span>
+            </div>
+            <p class="one-liner">${s.oneLiner}</p>
+            <div class="card-price-row">
+              <span class="price-main">${s.priceMain}</span>
+              <span class="price-sub">${s.priceSub}</span>
+            </div>
+            <div class="card-tags">${tagsHtml}</div>
+            <div class="card-cta-hint">
+              <span>${isSelected ? `詳細を表示中` : `クリックして詳細・注意点を表示`}</span>
+            </div>
+          </button>
+        </div>`;
+      }).join(``);
+    }
+
+    function renderInspector() {
+      const panel = document.getElementById(`detail-panel`);
+      if (!panel) return;
+
+      const s = servicesData.find(function(item) { return item.id === selectedId; }) || servicesData[0];
+      const idxStr = String(s.order).padStart(2, `0`);
+
+      const strengthsHtml = s.strengths.map(function(st) {
+        return `<li>
+          <i data-lucide="check-circle-2" class="detail-icon" width="16" height="16" aria-hidden="true"></i>
+          <span>${st}</span>
+        </li>`;
+      }).join(``);
+
+      const worksHtml = s.works.map(function(w) {
+        return `<span class="work-chip">${w}</span>`;
+      }).join(``);
+
+      panel.innerHTML = `
+        <div class="inspector-head">
+          <div>
+            <div class="inspector-head-badges">
+              <span class="index-num">${idxStr} / 09</span>
+              <span class="tier-badge ${s.tierClass}">${s.tier}</span>
+            </div>
+            <h3 class="inspector-title">${s.name}</h3>
+          </div>
+        </div>
+
+        <p class="inspector-oneliner">${s.oneLiner}</p>
+
+        <div class="inspector-metrics">
+          <div class="metric-box">
+            <span class="metric-label">料金・プラン体系</span>
+            <span class="metric-val">${s.effectiveLabel}</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">作品数・規模感</span>
+            <span class="metric-val">${s.worksCount}</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="field-label inspector-sublabel">ポイント・無料体験・おすすめポイント</div>
+          <ul class="detail-list">${strengthsHtml}</ul>
+        </div>
+
+        <div class="caution-box">
+          <div class="caution-title">
+            <i data-lucide="alert-triangle" width="15" height="15" aria-hidden="true"></i>
+            <span>契約前の注意点・向いている人</span>
+          </div>
+          <p class="caution-body">${s.caution}</p>
+          <p class="caution-target">向いている人：${s.targetAudience}</p>
+        </div>
+
+        <div>
+          <div class="field-label inspector-sublabel">言及タイトル・特徴キーワード</div>
+          <div class="works-row">${worksHtml}</div>
+        </div>
+
+        <div class="inspector-nav">
+          <button type="button" class="btn-secondary" onclick="stepService(-1)">
+            <i data-lucide="arrow-left" width="16" height="16" aria-hidden="true"></i>
+            <span>前のサービス</span>
+          </button>
+          <button type="button" class="btn-secondary" onclick="stepService(1)">
+            <span>次のサービス</span>
+            <i data-lucide="arrow-right" width="16" height="16" aria-hidden="true"></i>
+          </button>
+        </div>
+      `;
+
+      if (window.lucide && typeof window.lucide.createIcons === `function`) {
+        window.lucide.createIcons();
+      }
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById(`comparison-tbody`);
+      if (!tbody) return;
+
+      const sorted = servicesData.slice().sort(function(a, b) {
+        let diff = 0;
+        if (tableSortCol === `price`) {
+          diff = a.priceNum - b.priceNum;
+        } else {
+          diff = a.order - b.order;
+        }
+        return tableSortDir === `asc` ? diff : -diff;
+      });
+
+      tbody.innerHTML = sorted.map(function(s) {
+        const isActive = s.id === selectedId;
+        return `<tr class="${isActive ? `is-active-row` : ``}" onclick="focusService('${s.id}', true)">
+          <td>
+            <div class="table-service-name">${s.name}</div>
+            <span class="tier-badge ${s.tierClass} table-tier-badge">${s.tier}</span>
+          </td>
+          <td class="table-oneliner">${s.oneLiner}</td>
+          <td class="td-num">${s.priceMain}<div class="table-price-sub">${s.priceSub}</div></td>
+          <td>${s.pointsText}</td>
+          <td>${s.worksCount}<div class="table-works-sub">${s.works.join(` / `)}</div></td>
+          <td>${s.targetAudience}</td>
+        </tr>`;
+      }).join(``);
+
+      const ordInd = document.getElementById(`sort-ind-order`);
+      const prcInd = document.getElementById(`sort-ind-price`);
+      if (ordInd) ordInd.textContent = tableSortCol === `order` ? (tableSortDir === `asc` ? `↑` : `↓`) : `↕`;
+      if (prcInd) prcInd.textContent = tableSortCol === `price` ? (tableSortDir === `asc` ? `↑` : `↓`) : `↕`;
+    }
+
+    function getThemeToken(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    function renderChart() {
+      const canvas = document.getElementById(`price-chart`);
+      if (!canvas || typeof Chart === `undefined`) return;
+
+      const data1 = getThemeToken(`--data-1`);
+      const data2 = getThemeToken(`--data-2`);
+      const data3 = getThemeToken(`--data-3`);
+      const data4 = getThemeToken(`--data-4`);
+      const inkColor = getThemeToken(`--on-surface`);
+      const mutedColor = getThemeToken(`--on-surface-variant`);
+      const gridColor = getThemeToken(`--outline-variant`);
+
+      let labels = [];
+      let values = [];
+      let barColors = [];
+      let ids = [];
+
+      if (chartMode === `standard`) {
+        labels = [
+          `ABEMA（無料枠）`,
+          `TVer（無料）`,
+          `Primeビデオ本体`,
+          `FOD`,
+          `Netflix 広告付`,
+          `Prime＋アジアch`,
+          `Hulu`,
+          `Lemino`,
+          `Netflix 標準`,
+          `U-NEXT（定価）`,
+          `WOWOWオンデマンド`,
+          `Netflix 4K`
+        ];
+        values = [0, 0, 600, 976, 990, 1260, 1320, 1540, 1790, 2189, 2530, 2590];
+        ids = [`abema`, `tver`, `prime`, `fod`, `netflix`, `prime`, `hulu`, `lemino`, `netflix`, `unext`, `wowow`, `netflix`];
+        barColors = ids.map(function(id) {
+          if (id === `unext`) return data2;
+          if (id === `netflix`) return data1;
+          if (id === `abema` || id === `tver`) return data3;
+          return data4;
+        });
+      } else {
+        labels = [
+          `ABEMA（1ヶ月無料作）`,
+          `TVer（完全無料）`,
+          `U-NEXT BFセール実質`,
+          `U-NEXT 通常セール実質`,
+          `FOD（実質876円〜）`,
+          `U-NEXT 定価実質`,
+          `Netflix 広告付`,
+          `Prime＋アジアch`,
+          `Hulu`,
+          `Lemino`,
+          `WOWOWオンデマンド`
+        ];
+        values = [0, 0, 332, 551, 876, 989, 990, 1260, 1320, 1540, 2530];
+        ids = [`abema`, `tver`, `unext`, `unext`, `fod`, `unext`, `netflix`, `prime`, `hulu`, `lemino`, `wowow`];
+        barColors = ids.map(function(id) {
+          if (id === `unext`) return data2;
+          if (id === `netflix`) return data1;
+          if (id === `abema` || id === `tver`) return data3;
+          return data4;
+        });
+      }
+
+      if (priceChartInstance) {
+        priceChartInstance.destroy();
+      }
+
+      priceChartInstance = new Chart(canvas.getContext(`2d`), {
+        type: `bar`,
+        data: {
+          labels: labels,
+          datasets: [{
+            label: `月額料金（円）`,
+            data: values,
+            backgroundColor: barColors,
+            borderRadius: 4,
+            barThickness: 18
+          }]
+        },
+        options: {
+          indexAxis: `y`,
+          responsive: true,
+          maintainAspectRatio: false,
+          onClick: function(evt, elements) {
+            if (elements && elements.length > 0) {
+              const idx = elements[0].index;
+              const targetId = ids[idx];
+              if (targetId) focusService(targetId, true);
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(ctx) {
+                  return ctx.raw === 0 ? `0円（無料枠）` : ctx.raw.toLocaleString() + `円（税込）`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              suggestedMax: 2800,
+              grid: { color: gridColor },
+              ticks: {
+                color: mutedColor,
+                callback: function(val) { return val + `円`; }
+              }
+            },
+            y: {
+              grid: { display: false },
+              ticks: {
+                color: inkColor,
+                font: { size: 12, weight: `600` }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function updateSimulator() {
+      const routeEl = document.getElementById(`sim-unext-route`);
+      const ptsEl = document.getElementById(`sim-unext-points`);
+      const nfEl = document.getElementById(`sim-netflix-plan`);
+      const primeEl = document.getElementById(`sim-prime-status`);
+
+      const effOut = document.getElementById(`sim-unext-effective`);
+      const adviceOut = document.getElementById(`sim-advice`);
+      const diffNfOut = document.getElementById(`sim-diff-netflix`);
+      const diffPrimeOut = document.getElementById(`sim-diff-prime`);
+
+      if (!routeEl || !ptsEl || !nfEl || !primeEl || !effOut || !adviceOut || !diffNfOut || !diffPrimeOut) return;
+
+      const gross = parseInt(routeEl.value, 10);
+      const pts = parseInt(ptsEl.value, 10);
+      const nf = parseInt(nfEl.value, 10);
+      const primeCost = parseInt(primeEl.value, 10);
+
+      const unextEff = Math.max(0, gross - pts);
+      effOut.textContent = unextEff.toLocaleString() + `円 / 月（実質）`;
+
+      let advice = ``;
+      if (gross === 2189) {
+        advice = `公式月額での試算です。Amazonの2ヶ月に1度のセール（1,751円）を使うとさらに月438円おトクになります。`;
+      } else if (gross === 1751) {
+        advice = `Amazon通常セール価格です。ギフトコード有効期限は原則「購入月の翌月月末まで」なので登録忘れに注意！`;
+      } else {
+        advice = `年1回のブラックフライデー最安値！1,200ptを新作や漫画に充てれば実質332円で973作品を楽しめます。`;
+      }
+      if (pts === 1200) {
+        advice += ` 付与ポイントは90日間で失効するため計画的に消化しましょう。`;
+      }
+      adviceOut.textContent = advice;
+
+      const diffNf = unextEff - nf;
+      if (diffNf < 0) {
+        diffNfOut.textContent = `U-NEXT実質の方が月` + Math.abs(diffNf).toLocaleString() + `円お得`;
+      } else if (diffNf > 0) {
+        diffNfOut.textContent = `Netflixの方が月` + diffNf.toLocaleString() + `円安い`;
+      } else {
+        diffNfOut.textContent = `同額（` + unextEff.toLocaleString() + `円）`;
+      }
+
+      const diffPr = unextEff - primeCost;
+      if (diffPr < 0) {
+        diffPrimeOut.textContent = `U-NEXT実質の方が月` + Math.abs(diffPr).toLocaleString() + `円お得`;
+      } else if (diffPr > 0) {
+        diffPrimeOut.textContent = `チャンネルアジアが月` + diffPr.toLocaleString() + `円安い`;
+      } else {
+        diffPrimeOut.textContent = `同額（` + unextEff.toLocaleString() + `円）`;
+      }
+    }
+
+    function setPurposeFilter(purpose) {
+      activePurpose = purpose;
+      const buttons = document.querySelectorAll(`.filter-btn`);
+      buttons.forEach(function(btn) {
+        const isMatch = btn.getAttribute(`data-filter`) === purpose;
+        btn.setAttribute(`aria-pressed`, isMatch ? `true` : `false`);
+      });
+      renderCards();
+      renderInspector();
+    }
+
+    function handleSearch(val) {
+      searchQuery = val;
+      renderCards();
+      renderInspector();
+    }
+
+    function handleSort(val) {
+      currentSort = val;
+      renderCards();
+      renderInspector();
+    }
+
+    function resetFilters() {
+      activePurpose = `all`;
+      searchQuery = ``;
+      currentSort = `recommend`;
+
+      const searchEl = document.getElementById(`search-input`);
+      const sortEl = document.getElementById(`sort-select`);
+      if (searchEl) searchEl.value = ``;
+      if (sortEl) sortEl.value = `recommend`;
+
+      setPurposeFilter(`all`);
+    }
+
+    function focusService(id, shouldScroll) {
+      selectedId = id;
+
+      const visible = getFilteredServices();
+      if (!visible.some(function(s) { return s.id === id; })) {
+        activePurpose = `all`;
+        searchQuery = ``;
+        const searchEl = document.getElementById(`search-input`);
+        if (searchEl) searchEl.value = ``;
+        document.querySelectorAll(`.filter-btn`).forEach(function(btn) {
+          btn.setAttribute(`aria-pressed`, btn.getAttribute(`data-filter`) === `all` ? `true` : `false`);
+        });
+      }
+
+      renderCards();
+      renderInspector();
+      renderTable();
+
+      if (shouldScroll) {
+        const panel = document.getElementById(`detail-panel`);
+        if (panel) {
+          panel.scrollIntoView({ behavior: `smooth`, block: `nearest` });
+        }
+      }
+    }
+
+    function stepService(delta) {
+      const list = getFilteredServices();
+      if (list.length === 0) return;
+      const currentIdx = list.findIndex(function(s) { return s.id === selectedId; });
+      const nextIdx = currentIdx === -1 ? 0 : (currentIdx + delta + list.length) % list.length;
+      focusService(list[nextIdx].id, false);
+    }
+
+    function setChartMode(mode) {
+      chartMode = mode;
+      const stdBtn = document.getElementById(`mode-standard`);
+      const effBtn = document.getElementById(`mode-effective`);
+      const caption = document.getElementById(`chart-caption`);
+
+      if (stdBtn) stdBtn.setAttribute(`aria-pressed`, mode === `standard` ? `true` : `false`);
+      if (effBtn) effBtn.setAttribute(`aria-pressed`, mode === `effective` ? `true` : `false`);
+
+      if (caption) {
+        caption.textContent = mode === `standard`
+          ? `※ 通常の月額料金ベースでの比較です。U-NEXTは1,200pt付き、Netflixは広告付き990円〜4K対応2,590円まで3プランあります。`
+          : `※ U-NEXTのポイント還元（1,200pt）やAmazonセール価格、FODの100pt還元を加味した実質・最安ベースでの比較です。`;
+      }
+      renderChart();
+    }
+
+    function toggleTableSort(col) {
+      if (tableSortCol === col) {
+        tableSortDir = tableSortDir === `asc` ? `desc` : `asc`;
+      } else {
+        tableSortCol = col;
+        tableSortDir = `asc`;
+      }
+      renderTable();
+    }
+
+    window.addEventListener(`DOMContentLoaded`, function() {
+      renderCards();
+      renderInspector();
+      renderTable();
+      renderChart();
+      updateSimulator();
+      if (window.lucide && typeof window.lucide.createIcons === `function`) {
+        window.lucide.createIcons();
+      }
+    });
+  </script>
+</body>
+</html>
