@@ -1,0 +1,2234 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="artifact-type" content="dashboard">
+  <meta name="design-style" content="nocturne">
+  <title>不为人知的故事 — 人物相関図・勢力アーカイブ</title>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..700;1,400..600&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@1.43.0/dist/umd/lucide.min.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+
+      /* Nocturne: Prussian midnight surfaces */
+      --background: #0a101d;
+      --surface-container-low: #0e1626;
+      --surface-container: #111b2e;
+      --surface-container-high: #17243c;
+
+      /* Text */
+      --on-surface: #f2ece1;
+      --on-surface-variant: #9ba8bf;
+
+      /* Borders */
+      --outline: #384d73;
+      --outline-variant: #21304d;
+
+      /* Accents */
+      --primary: #dfaa5b;
+      --on-primary: #0a101d;
+      --primary-container: #2b261c;
+      --on-primary-container: #f5dcb0;
+      --secondary: #687a99;
+      --tertiary: #7cc4e8;
+      --error: #f27474;
+      --on-error: #1a0606;
+
+      /* Semantic & Data series */
+      --positive: #52d19c;
+      --warning: #dfaa5b;
+      --data-1: #dfaa5b;
+      --data-2: #7cc4e8;
+      --data-3: #52d19c;
+      --data-4: #e07a5f;
+      --data-context: #4a5d80;
+
+      /* Faction color tokens */
+      --faction-protagonist: #dfaa5b;
+      --faction-civilian: #c8b99e;
+      --faction-police: #7cc4e8;
+      --faction-syndicate: #e07a5f;
+      --faction-external: #52d19c;
+
+      --faction-protagonist-bg: color-mix(in srgb, #dfaa5b 12%, #111b2e);
+      --faction-civilian-bg: color-mix(in srgb, #c8b99e 11%, #111b2e);
+      --faction-police-bg: color-mix(in srgb, #7cc4e8 12%, #111b2e);
+      --faction-syndicate-bg: color-mix(in srgb, #e07a5f 12%, #111b2e);
+      --faction-external-bg: color-mix(in srgb, #52d19c 12%, #111b2e);
+
+      --faction-protagonist-border: color-mix(in srgb, #dfaa5b 45%, transparent);
+      --faction-civilian-border: color-mix(in srgb, #c8b99e 42%, transparent);
+      --faction-police-border: color-mix(in srgb, #7cc4e8 45%, transparent);
+      --faction-syndicate-border: color-mix(in srgb, #e07a5f 45%, transparent);
+      --faction-external-border: color-mix(in srgb, #52d19c 45%, transparent);
+
+      /* Fonts */
+      --font-headline: 'Shippori Mincho', 'EB Garamond', serif;
+      --font-body: 'Noto Sans JP', 'Plus Jakarta Sans', sans-serif;
+      --font-label: 'JetBrains Mono', 'Noto Sans JP', monospace;
+
+      /* Type scale (Dashboard / Explorer) */
+      --display-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.35rem);
+      --headline-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
+      --subhead-size: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+      --body-size: clamp(0.9375rem, 0.9rem + 0.15vw, 1rem);
+      --label-size: 0.75rem;
+
+      /* Shape */
+      --rounded: 0.25rem;
+      --rounded-lg: 0.375rem;
+      --rounded-full: 9999px;
+
+      /* Nocturne effects */
+      --hairline: 1px solid var(--outline-variant);
+      --hairline-strong: 1px solid var(--outline);
+      --panel-highlight: inset 0 1px 0 rgba(242, 236, 225, 0.05);
+      --brass-glow: radial-gradient(circle at 88% 12%, rgba(223, 170, 91, 0.09), transparent 46%);
+      --grid-line: rgba(56, 77, 115, 0.18);
+      --zone-fill: rgba(17, 27, 46, 0.32);
+      --selected-shadow: 0 0 0 2px var(--primary), 0 8px 24px rgba(10, 16, 29, 0.75);
+      --tag-backdrop: rgba(10, 16, 29, 0.55);
+      --cast-backdrop: rgba(10, 16, 29, 0.65);
+      --focus-ring: 0 0 0 2px var(--background), 0 0 0 4px var(--primary);
+      --sky-tint: color-mix(in srgb, var(--tertiary) 12%, transparent);
+      --brass-tint: color-mix(in srgb, var(--primary) 14%, transparent);
+      --coral-tint: color-mix(in srgb, var(--data-4) 14%, transparent);
+      --mint-tint: color-mix(in srgb, var(--data-3) 14%, transparent);
+      --sand-tint: color-mix(in srgb, var(--faction-civilian) 14%, transparent);
+
+      --heading-tracking: -0.015em;
+      --label-tracking: 0.06em;
+
+      /* Spacing scale (4pt base) */
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2.5rem;
+      --space-2xl: 4rem;
+
+      /* Motion */
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+      --dur-micro: 120ms;
+      --dur-short: 220ms;
+      --dur-long: 420ms;
+    }
+
+    /* Base reset */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      overflow-x: clip;
+      margin: 0;
+      padding: 0;
+      background-color: var(--background);
+      color: var(--on-surface);
+      font-family: var(--font-body);
+      font-size: var(--body-size);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    header { position: static !important; }
+    button, input, select, textarea { font-family: inherit; }
+
+    .page-grid {
+      display: grid;
+      gap: var(--space-lg);
+      padding: var(--space-lg);
+      max-width: 1480px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+    .page-grid * { min-width: 0; }
+
+    /* Focus rings */
+    :focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    /* Hero Header */
+    .hero-header {
+      background-color: var(--background);
+      background-image: var(--brass-glow);
+      border-bottom: var(--hairline);
+      padding-bottom: var(--space-lg);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: var(--space-lg);
+      align-items: end;
+    }
+
+    .coord-label {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      letter-spacing: var(--label-tracking);
+      text-transform: uppercase;
+      color: var(--tertiary);
+      margin-bottom: var(--space-xs);
+    }
+
+    .title {
+      font-family: var(--font-headline);
+      font-weight: 600;
+      font-size: var(--display-size);
+      letter-spacing: var(--heading-tracking);
+      line-height: 1.15;
+      color: var(--on-surface);
+      margin: 0;
+    }
+
+    .title-accent {
+      color: var(--primary);
+      font-style: italic;
+      font-family: 'EB Garamond', 'Shippori Mincho', serif;
+      font-weight: 500;
+      padding-right: var(--space-xs);
+    }
+
+    .deck-brass {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      letter-spacing: var(--label-tracking);
+      text-transform: uppercase;
+      color: var(--primary);
+      margin-top: var(--space-xs);
+    }
+
+    .hero-lede {
+      color: var(--on-surface-variant);
+      max-width: 68ch;
+      margin: var(--space-sm) 0 0;
+      font-size: var(--body-size);
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: var(--space-md);
+      flex-wrap: wrap;
+    }
+
+    .stat-tile {
+      background: var(--surface-container);
+      border: var(--hairline);
+      box-shadow: var(--panel-highlight);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-sm) var(--space-md);
+      min-width: 112px;
+    }
+
+    .stat-label {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+      display: block;
+    }
+
+    .stat-val {
+      font-family: 'EB Garamond', serif;
+      font-size: 1.6rem;
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+      color: var(--on-surface);
+      line-height: 1.2;
+    }
+
+    /* Controls & Faction Filter Strip */
+    .controls-bar {
+      background: var(--surface-container);
+      border: var(--hairline);
+      box-shadow: var(--panel-highlight);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-md);
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-md);
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      align-items: center;
+    }
+
+    .filter-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-sm);
+      min-height: 44px;
+      padding: 0 var(--space-md);
+      border-radius: var(--rounded);
+      border: var(--hairline);
+      background: var(--background);
+      color: var(--on-surface-variant);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color var(--dur-micro) var(--ease-out),
+                  color var(--dur-micro) var(--ease-out),
+                  box-shadow var(--dur-micro) var(--ease-out);
+    }
+
+    .filter-btn:hover {
+      background: var(--surface-container-high);
+      color: var(--on-surface);
+    }
+
+    .filter-btn.is-active {
+      background: var(--surface-container-high);
+      color: var(--on-surface);
+      box-shadow: inset 0 0 0 1px var(--primary);
+    }
+
+    .filter-btn[data-faction="protagonist"].is-active {
+      box-shadow: inset 0 0 0 1px var(--faction-protagonist);
+      background: var(--brass-tint);
+    }
+    .filter-btn[data-faction="civilian"].is-active {
+      box-shadow: inset 0 0 0 1px var(--faction-civilian);
+      background: var(--sand-tint);
+    }
+    .filter-btn[data-faction="police"].is-active {
+      box-shadow: inset 0 0 0 1px var(--faction-police);
+      background: var(--sky-tint);
+    }
+    .filter-btn[data-faction="syndicate"].is-active {
+      box-shadow: inset 0 0 0 1px var(--faction-syndicate);
+      background: var(--coral-tint);
+    }
+    .filter-btn[data-faction="external"].is-active {
+      box-shadow: inset 0 0 0 1px var(--faction-external);
+      background: var(--mint-tint);
+    }
+
+    .faction-swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .count-pill {
+      font-family: var(--font-label);
+      font-size: 0.72rem;
+      color: var(--on-surface-variant);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .tool-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      align-items: center;
+    }
+
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      min-height: 44px;
+      padding: 0 var(--space-md);
+      border-radius: var(--rounded);
+      border: var(--hairline-strong);
+      background: transparent;
+      color: var(--on-surface);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color var(--dur-micro) var(--ease-out),
+                  color var(--dur-micro) var(--ease-out);
+    }
+
+    .action-btn:hover {
+      background: var(--surface-container-high);
+    }
+
+    .action-btn.is-toggled {
+      background: var(--brass-tint);
+      color: var(--primary);
+      border-color: var(--faction-protagonist-border);
+    }
+
+    .action-btn svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    /* Main Workspace Grid */
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 390px;
+      gap: var(--space-lg);
+      align-items: start;
+    }
+
+    /* Graph Panel */
+    .graph-panel {
+      background: var(--surface-container);
+      border: var(--hairline);
+      box-shadow: var(--panel-highlight);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .graph-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      padding-bottom: var(--space-xs);
+    }
+
+    .graph-hint {
+      font-size: 0.85rem;
+      color: var(--on-surface-variant);
+    }
+
+    .zoom-controls {
+      display: flex;
+      gap: var(--space-xs);
+      align-items: center;
+    }
+
+    .icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      min-height: 44px;
+      padding: 0 var(--space-sm);
+      border-radius: var(--rounded);
+      border: var(--hairline);
+      background: var(--background);
+      color: var(--on-surface);
+      cursor: pointer;
+      font-family: var(--font-label);
+      font-size: 0.8rem;
+      transition: background-color var(--dur-micro) var(--ease-out);
+    }
+
+    .icon-btn:hover {
+      background: var(--surface-container-high);
+    }
+
+    .zoom-readout {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      color: var(--tertiary);
+      min-width: 52px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Observation Well */
+    .observation-well {
+      position: relative;
+      width: 100%;
+      min-height: 580px;
+      height: 660px;
+      background-color: var(--background);
+      background-image:
+        linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+      background-size: 48px 48px;
+      border: var(--hairline);
+      border-radius: var(--rounded);
+      overflow: hidden;
+      cursor: grab;
+      user-select: none;
+      touch-action: none;
+    }
+
+    .observation-well.is-panning {
+      cursor: grabbing;
+    }
+
+    .graph-stage {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1200px;
+      height: 840px;
+      transform-origin: 0 0;
+    }
+
+    .edges-svg {
+      position: absolute;
+      inset: 0;
+      width: 1200px;
+      height: 840px;
+      pointer-events: none;
+      overflow: visible;
+    }
+
+    .zone-box {
+      fill: var(--zone-fill);
+      stroke-width: 1;
+      stroke-dasharray: 5 5;
+      rx: 10;
+    }
+
+    .zone-title {
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 600;
+      fill: var(--on-surface-variant);
+      opacity: 0.78;
+    }
+
+    .edge-path {
+      fill: none;
+      stroke-width: 2;
+      transition: opacity var(--dur-short) var(--ease-out),
+                  stroke-width var(--dur-short) var(--ease-out);
+    }
+
+    .edge-path.is-dimmed {
+      opacity: 0.14;
+    }
+
+    .edge-path.is-highlighted {
+      stroke-width: 3;
+      opacity: 1;
+    }
+
+    .edge-labels-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .edge-labels-layer.labels-hidden .edge-label-pill {
+      opacity: 0;
+    }
+
+    .edge-label-pill {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline);
+      border-radius: var(--rounded);
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.25;
+      white-space: nowrap;
+      color: var(--on-surface);
+      pointer-events: auto;
+      cursor: pointer;
+      transition: opacity var(--dur-short) var(--ease-out),
+                  transform var(--dur-micro) var(--ease-out),
+                  background-color var(--dur-micro) var(--ease-out);
+    }
+
+    .edge-label-pill:hover {
+      background: var(--surface-container-high);
+      transform: translate(-50%, -50%) scale(1.04);
+      z-index: 25;
+    }
+
+    .edge-label-pill.is-dimmed {
+      opacity: 0.15;
+    }
+
+    .edge-label-pill.is-highlighted {
+      opacity: 1;
+      z-index: 20;
+      box-shadow: 0 0 0 1px var(--primary);
+    }
+
+    /* Nodes Layer */
+    .nodes-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    /* Character Card Node — NO single-character circular avatars */
+    .char-node {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      width: 194px;
+      min-height: 88px;
+      padding: 10px 12px;
+      border-radius: var(--rounded-lg);
+      background: var(--surface-container);
+      border: 1px solid var(--outline-variant);
+      box-shadow: var(--panel-highlight);
+      color: var(--on-surface);
+      text-align: left;
+      cursor: pointer;
+      pointer-events: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: transform var(--dur-micro) var(--ease-out),
+                  opacity var(--dur-short) var(--ease-out),
+                  background-color var(--dur-micro) var(--ease-out),
+                  box-shadow var(--dur-micro) var(--ease-out);
+    }
+
+    .char-node.is-protagonist {
+      width: 214px;
+      min-height: 96px;
+      padding: 11px 14px;
+    }
+
+    .char-node::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      border-radius: var(--rounded-lg) var(--rounded-lg) 0 0;
+      background: var(--outline);
+    }
+
+    .char-node[data-faction="protagonist"] {
+      background: var(--faction-protagonist-bg);
+      border-color: var(--faction-protagonist-border);
+    }
+    .char-node[data-faction="protagonist"]::before { background: var(--faction-protagonist); }
+
+    .char-node[data-faction="civilian"] {
+      background: var(--faction-civilian-bg);
+      border-color: var(--faction-civilian-border);
+    }
+    .char-node[data-faction="civilian"]::before { background: var(--faction-civilian); }
+
+    .char-node[data-faction="police"] {
+      background: var(--faction-police-bg);
+      border-color: var(--faction-police-border);
+    }
+    .char-node[data-faction="police"]::before { background: var(--faction-police); }
+
+    .char-node[data-faction="syndicate"] {
+      background: var(--faction-syndicate-bg);
+      border-color: var(--faction-syndicate-border);
+    }
+    .char-node[data-faction="syndicate"]::before { background: var(--faction-syndicate); }
+
+    .char-node[data-faction="external"] {
+      background: var(--faction-external-bg);
+      border-color: var(--faction-external-border);
+    }
+    .char-node[data-faction="external"]::before { background: var(--faction-external); }
+
+    .char-node:hover {
+      transform: translate(-50%, -52%);
+      background: var(--surface-container-high);
+      z-index: 15;
+    }
+
+    .char-node.is-selected {
+      background: var(--surface-container-high);
+      box-shadow: var(--selected-shadow);
+      z-index: 30;
+    }
+
+    .char-node.is-neighbor {
+      box-shadow: 0 0 0 1px var(--tertiary);
+      z-index: 18;
+    }
+
+    .char-node.is-dimmed {
+      opacity: 0.24;
+    }
+
+    .node-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .node-faction-tag {
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: 3px;
+      background: var(--tag-backdrop);
+      color: var(--on-surface-variant);
+      border: 1px solid var(--outline-variant);
+    }
+
+    .char-node[data-faction="protagonist"] .node-faction-tag { color: var(--faction-protagonist); border-color: var(--faction-protagonist-border); }
+    .char-node[data-faction="civilian"] .node-faction-tag { color: var(--faction-civilian); border-color: var(--faction-civilian-border); }
+    .char-node[data-faction="police"] .node-faction-tag { color: var(--faction-police); border-color: var(--faction-police-border); }
+    .char-node[data-faction="syndicate"] .node-faction-tag { color: var(--faction-syndicate); border-color: var(--faction-syndicate-border); }
+    .char-node[data-faction="external"] .node-faction-tag { color: var(--faction-external); border-color: var(--faction-external-border); }
+
+    .node-cast-badge {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--on-surface);
+      background: var(--cast-backdrop);
+      border: 1px solid var(--outline);
+      border-radius: 3px;
+      padding: 1px 6px;
+      white-space: nowrap;
+    }
+
+    .node-name-row {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .node-name {
+      font-family: var(--font-headline);
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--on-surface);
+      line-height: 1.2;
+    }
+
+    .node-alias {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .node-role {
+      font-size: 11.5px;
+      color: var(--on-surface-variant);
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Quick Character Selector Strip (Mobile & Accessibility Aid) */
+    .quick-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+      padding-top: var(--space-xs);
+      border-top: var(--hairline);
+    }
+
+    .quick-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 38px;
+      padding: 4px 10px;
+      border-radius: var(--rounded);
+      border: var(--hairline);
+      background: var(--background);
+      color: var(--on-surface-variant);
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: background-color var(--dur-micro) var(--ease-out),
+                  color var(--dur-micro) var(--ease-out);
+    }
+
+    .quick-chip:hover {
+      background: var(--surface-container-high);
+      color: var(--on-surface);
+    }
+
+    .quick-chip.is-active {
+      background: var(--surface-container-high);
+      color: var(--on-surface);
+      box-shadow: inset 0 0 0 1px var(--primary);
+    }
+
+    /* Detail Dossier Panel */
+    .dossier-panel {
+      background: var(--surface-container);
+      border: var(--hairline);
+      box-shadow: var(--panel-highlight);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+      position: sticky;
+      top: var(--space-lg);
+    }
+
+    .dossier-header {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+      padding-bottom: var(--space-md);
+      border-bottom: var(--hairline);
+    }
+
+    .dossier-top-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+
+    .faction-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: var(--rounded);
+      font-size: 0.78rem;
+      font-weight: 600;
+      border: 1px solid var(--outline);
+    }
+
+    .dossier-name {
+      font-family: var(--font-headline);
+      font-size: 1.65rem;
+      font-weight: 700;
+      color: var(--on-surface);
+      margin: var(--space-xs) 0 0;
+      line-height: 1.2;
+    }
+
+    .dossier-reading {
+      font-size: 0.85rem;
+      color: var(--on-surface-variant);
+    }
+
+    .dossier-cast-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      align-items: center;
+      margin-top: var(--space-xs);
+    }
+
+    .cast-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: var(--rounded);
+      background: var(--brass-tint);
+      border: 1px solid var(--faction-protagonist-border);
+      color: var(--on-primary-container);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .alias-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: var(--rounded);
+      background: var(--sky-tint);
+      border: 1px solid var(--faction-police-border);
+      color: var(--tertiary);
+      font-size: 0.82rem;
+      font-weight: 500;
+    }
+
+    .dossier-section-title {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      color: var(--primary);
+      margin: 0 0 var(--space-xs);
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+
+    .dossier-summary {
+      margin: 0;
+      color: var(--on-surface);
+      font-size: 0.9375rem;
+      line-height: 1.65;
+    }
+
+    .dossier-quote {
+      background: var(--background);
+      border: var(--hairline);
+      border-left: 3px solid var(--primary);
+      border-radius: var(--rounded);
+      padding: var(--space-sm) var(--space-md);
+      font-size: 0.88rem;
+      color: var(--on-surface-variant);
+      line-height: 1.55;
+    }
+
+    .dossier-quote strong {
+      color: var(--on-surface);
+      display: block;
+      margin-bottom: 2px;
+      font-weight: 600;
+    }
+
+    .connections-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .connection-item {
+      width: 100%;
+      text-align: left;
+      background: var(--background);
+      border: var(--hairline);
+      border-radius: var(--rounded);
+      padding: var(--space-sm) var(--space-md);
+      color: var(--on-surface);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: background-color var(--dur-micro) var(--ease-out),
+                  box-shadow var(--dur-micro) var(--ease-out);
+    }
+
+    .connection-item:hover {
+      background: var(--surface-container-high);
+      box-shadow: inset 0 0 0 1px var(--outline);
+    }
+
+    .conn-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+
+    .conn-target {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--on-surface);
+    }
+
+    .conn-cast {
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--on-surface-variant);
+      margin-left: 4px;
+    }
+
+    .conn-rel-badge {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: var(--rounded);
+      background: var(--surface-container-high);
+      border: 1px solid var(--outline);
+      color: var(--tertiary);
+      white-space: nowrap;
+    }
+
+    .conn-desc {
+      font-size: 0.82rem;
+      color: var(--on-surface-variant);
+      line-height: 1.45;
+    }
+
+    /* Bottom Directory & Matrix Section */
+    .directory-section {
+      display: grid;
+      gap: var(--space-md);
+    }
+
+    .section-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      border-bottom: var(--hairline);
+      padding-bottom: var(--space-sm);
+    }
+
+    .section-title {
+      font-family: var(--font-headline);
+      font-size: var(--headline-size);
+      font-weight: 600;
+      margin: 0;
+      color: var(--on-surface);
+    }
+
+    .section-sub {
+      font-size: 0.875rem;
+      color: var(--on-surface-variant);
+      margin: 0;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(275px, 100%), 1fr));
+      gap: var(--space-md);
+    }
+
+    .roster-card {
+      background: var(--surface-container);
+      border: var(--hairline);
+      box-shadow: var(--panel-highlight);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      cursor: pointer;
+      text-align: left;
+      color: var(--on-surface);
+      transition: background-color var(--dur-micro) var(--ease-out),
+                  box-shadow var(--dur-micro) var(--ease-out);
+    }
+
+    .roster-card:hover {
+      background: var(--surface-container-high);
+      box-shadow: inset 0 0 0 1px var(--outline);
+    }
+
+    .roster-card.is-selected {
+      box-shadow: inset 0 0 0 2px var(--primary);
+      background: var(--surface-container-high);
+    }
+
+    .roster-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+
+    .roster-name {
+      font-family: var(--font-headline);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--on-surface);
+    }
+
+    .roster-cast {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--primary);
+      background: var(--brass-tint);
+      padding: 2px 8px;
+      border-radius: var(--rounded);
+      border: 1px solid var(--faction-protagonist-border);
+      white-space: nowrap;
+    }
+
+    .roster-desc {
+      font-size: 0.86rem;
+      color: var(--on-surface-variant);
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    /* Footer source note */
+    .source-footer {
+      border-top: var(--hairline);
+      padding-top: var(--space-md);
+      font-size: 0.82rem;
+      color: var(--on-surface-variant);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 1080px) {
+      .workspace-grid {
+        grid-template-columns: 1fr;
+      }
+      .dossier-panel {
+        position: static;
+      }
+      .observation-well {
+        height: 540px;
+        min-height: 460px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page-grid {
+        padding: var(--space-sm);
+        gap: var(--space-md);
+      }
+      .hero-header {
+        grid-template-columns: 1fr;
+      }
+      .observation-well {
+        height: 430px;
+        min-height: 380px;
+      }
+      .controls-bar {
+        padding: var(--space-sm);
+      }
+      .dossier-panel {
+        padding: var(--space-md);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-grid">
+    <!-- Hero Header -->
+    <header class="hero-header">
+      <div>
+        <div class="coord-label">NANHU ARCHIVE · 24.8°N / CHARACTER CORRELATION</div>
+        <h1 class="title"><span class="title-accent">不为人知的故事</span> 人物相関図</h1>
+        <div class="deck-brass">INTERACTIVE CHARACTER &amp; FACTION NETWORK</div>
+        <p class="hero-lede">
+          潜入捜査官・陈铭生（偽名：江名）と文物修復師・杨昭が南湖で交差する運命を軸に、公安禁毒警察・白吉麻薬組織・沿海流通勢力・民間人の全13名と16の因果関係を立体的に探索できる人物相関図。
+        </p>
+      </div>
+      <div class="hero-stats" aria-label="相関図サマリー">
+        <div class="stat-tile">
+          <span class="stat-label">登場人物</span>
+          <span class="stat-val">13名</span>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-label">勢力・陣営</span>
+          <span class="stat-val">5区分</span>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-label">関係ライン</span>
+          <span class="stat-val">16本</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Controls & Faction Filters -->
+    <section class="controls-bar" aria-label="勢力フィルターと表示操作">
+      <div class="filter-group" id="faction-filters" role="group" aria-label="勢力別ハイライト">
+        <button type="button" class="filter-btn is-active" data-faction="all" onclick="setFactionFilter('all')">
+          すべて表示 <span class="count-pill">13</span>
+        </button>
+        <button type="button" class="filter-btn" data-faction="protagonist" onclick="setFactionFilter('protagonist')">
+          <span class="faction-swatch" style="background: var(--faction-protagonist);"></span>
+          主要主人公 <span class="count-pill">2</span>
+        </button>
+        <button type="button" class="filter-btn" data-faction="civilian" onclick="setFactionFilter('civilian')">
+          <span class="faction-swatch" style="background: var(--faction-civilian);"></span>
+          杨昭の周囲・民間人 <span class="count-pill">3</span>
+        </button>
+        <button type="button" class="filter-btn" data-faction="police" onclick="setFactionFilter('police')">
+          <span class="faction-swatch" style="background: var(--faction-police);"></span>
+          公安・禁毒警察陣営 <span class="count-pill">3</span>
+        </button>
+        <button type="button" class="filter-btn" data-faction="syndicate" onclick="setFactionFilter('syndicate')">
+          <span class="faction-swatch" style="background: var(--faction-syndicate);"></span>
+          白吉麻薬組織 <span class="count-pill">4</span>
+        </button>
+        <button type="button" class="filter-btn" data-faction="external" onclick="setFactionFilter('external')">
+          <span class="faction-swatch" style="background: var(--faction-external);"></span>
+          外部勢力 <span class="count-pill">1</span>
+        </button>
+      </div>
+
+      <div class="tool-actions">
+        <button type="button" id="toggle-labels-btn" class="action-btn is-toggled" onclick="toggleEdgeLabels()">
+          <i data-lucide="tag" aria-hidden="true"></i>
+          <span>関係ラベル表示</span>
+        </button>
+        <button type="button" class="action-btn" onclick="clearSelection()">
+          <i data-lucide="rotate-ccw" aria-hidden="true"></i>
+          <span>選択解除</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Main Split Workspace: Interactive Graph + Dossier Panel -->
+    <main class="workspace-grid">
+      <section class="graph-panel" aria-label="インタラクティブ人物相関図">
+        <div class="graph-toolbar">
+          <div class="graph-hint">
+            人物カードまたは関係ラベルをクリックすると、接続ラインと右側の詳細プロファイルが連動します（ドラッグで移動・ホイールで拡大縮小可）。
+          </div>
+          <div class="zoom-controls" role="group" aria-label="ズーム操作">
+            <button type="button" class="icon-btn" onclick="adjustZoom(-0.15)" aria-label="縮小" title="縮小">
+              <i data-lucide="zoom-out" aria-hidden="true"></i>
+            </button>
+            <span id="zoom-readout" class="zoom-readout">100%</span>
+            <button type="button" class="icon-btn" onclick="adjustZoom(0.15)" aria-label="拡大" title="拡大">
+              <i data-lucide="zoom-in" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="icon-btn" onclick="fitGraph()" aria-label="全体表示" title="全体表示">
+              全体表示
+            </button>
+          </div>
+        </div>
+
+        <div id="observation-well" class="observation-well">
+          <div id="graph-stage" class="graph-stage">
+            <svg id="edges-svg" class="edges-svg" viewBox="0 0 1200 840" width="1200" height="840" aria-hidden="true">
+              <defs>
+                <marker id="arrow-protagonist" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="var(--faction-protagonist)"></path>
+                </marker>
+                <marker id="arrow-police" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="var(--faction-police)"></path>
+                </marker>
+                <marker id="arrow-syndicate" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="var(--faction-syndicate)"></path>
+                </marker>
+                <marker id="arrow-external" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="var(--faction-external)"></path>
+                </marker>
+                <marker id="arrow-hostile" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="var(--error)"></path>
+                </marker>
+                <marker id="arrow-civilian" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="var(--faction-civilian)"></path>
+                </marker>
+              </defs>
+
+              <!-- Subtle Regional Zone Frames -->
+              <rect class="zone-box" x="42" y="34" width="465" height="316" stroke="var(--faction-police-border)"></rect>
+              <text class="zone-title" x="58" y="56">公安・禁毒警察陣営</text>
+
+              <rect class="zone-box" x="42" y="424" width="485" height="388" stroke="var(--faction-civilian-border)"></rect>
+              <text class="zone-title" x="58" y="446">杨昭の周囲・民間人</text>
+
+              <rect class="zone-box" x="678" y="88" width="472" height="516" stroke="var(--faction-syndicate-border)"></rect>
+              <text class="zone-title" x="694" y="586">白吉麻薬組織</text>
+
+              <rect class="zone-box" x="916" y="28" width="234" height="142" stroke="var(--faction-external-border)"></rect>
+              <text class="zone-title" x="930" y="48">外部勢力</text>
+
+              <g id="edges-group"></g>
+            </svg>
+
+            <div id="edge-labels-layer" class="edge-labels-layer"></div>
+            <div id="nodes-layer" class="nodes-layer"></div>
+          </div>
+        </div>
+
+        <!-- Quick Character Jump Strip -->
+        <div class="quick-strip" id="quick-strip" aria-label="登場人物クイック選択"></div>
+      </section>
+
+      <!-- Detail Dossier Panel -->
+      <aside id="dossier-panel" class="dossier-panel" aria-live="polite" aria-label="人物詳細プロファイル">
+        <div id="dossier-content"></div>
+      </aside>
+    </main>
+
+    <!-- Full Roster Directory by Faction -->
+    <section class="directory-section" aria-label="全登場人物・キャスト一覧">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">登場人物・キャスト総覧</h2>
+          <p class="section-sub">全13名の役名・キャスト名・組織上の立ち位置を陣営別に整理。カード選択で相関図上の位置と接続関係へフォーカスします。</p>
+        </div>
+      </div>
+      <div id="roster-grid" class="card-grid"></div>
+    </section>
+
+    <footer class="source-footer">
+      <span>出典：小説・映画『不为人知的故事』劇中台詞記録および登場人物・相関情報</span>
+      <span>表記：役名（カタカナ読み） ／ 演：キャスト名</span>
+    </footer>
+  </div>
+
+  <script>
+    const FACTIONS = {
+      protagonist: {
+        id: `protagonist`,
+        label: `主要主人公`,
+        colorVar: `var(--faction-protagonist)`,
+        bgVar: `var(--brass-tint)`,
+        borderVar: `var(--faction-protagonist-border)`
+      },
+      civilian: {
+        id: `civilian`,
+        label: `杨昭の周囲・民間人`,
+        colorVar: `var(--faction-civilian)`,
+        bgVar: `var(--sand-tint)`,
+        borderVar: `var(--faction-civilian-border)`
+      },
+      police: {
+        id: `police`,
+        label: `公安・禁毒警察陣営`,
+        colorVar: `var(--faction-police)`,
+        bgVar: `var(--sky-tint)`,
+        borderVar: `var(--faction-police-border)`
+      },
+      syndicate: {
+        id: `syndicate`,
+        label: `白吉麻薬組織`,
+        colorVar: `var(--faction-syndicate)`,
+        bgVar: `var(--coral-tint)`,
+        borderVar: `var(--faction-syndicate-border)`
+      },
+      external: {
+        id: `external`,
+        label: `外部勢力`,
+        colorVar: `var(--faction-external)`,
+        bgVar: `var(--mint-tint)`,
+        borderVar: `var(--faction-external-border)`
+      }
+    };
+
+    const CHARACTERS = [
+      {
+        id: `chen_mingsheng`,
+        name: `陈铭生`,
+        alias: `偽名：江名`,
+        reading: `チェン・ミンション ／ ジャン・ミン`,
+        cast: `黄轩`,
+        faction: `protagonist`,
+        role: `公安の潜入捜査官（白吉組織に潜入中）`,
+        shortRole: `潜入捜査官・元タクシー運転手`,
+        x: 575,
+        y: 330,
+        isProtagonist: true,
+        summary: `7年前の「明坤集団」壊滅作戦の功労者であり、現在は「江名」の偽名で再び白吉の麻薬組織に深く潜入している公安の捜査官。表向きは夜のタクシー運転手や組織の運び屋・幹部として振る舞い、古酒の知識や「鬼火」ライター、降圧剤を携えて孤独な任務を続ける。バー火災の夜、杨昭を命がけで救出し、彼女が修復する器物や静かな強さに深く惹かれていく。`,
+        quoteTitle: `劇中の記憶・発言より`,
+        quote: `「あと数日待っていてくれ。戻ったらすべてを話す」——そして師父・严郑涛に対しては「もし本当に引退できるなら、誰も自分を知らない場所でタクシー運転手をしたい」と本音を漏らす。`
+      },
+      {
+        id: `yang_zhao`,
+        name: `杨昭`,
+        alias: ``,
+        reading: `ヤン・ジャオ`,
+        cast: `金晨`,
+        faction: `protagonist`,
+        role: `文物修復師（南湖でアトリエを開設）`,
+        shortRole: `文物修復師・アトリエ主宰`,
+        x: 415,
+        y: 585,
+        isProtagonist: true,
+        summary: `4歳まで南湖の「锦贤福利院」で育ち、養父母に引き取られて青城や世界各地を巡ったのち、再び南湖へ戻った文物修復師。かつての福利院跡地だったバーを買い取り、陶磁器修復アトリエを開く。破片を別の器で補う「随缘缮」と「描金」の技を通じ、江名（陈铭生）が持ち込んだ欠けた茶碗と彼自身の傷ついた心に向き合う。`,
+        quoteTitle: `劇中の言葉より`,
+        quote: `「この世界はボロボロだけれど、誰かが繕い直さないといけない」——壊れたこと自体がその器の歴史であり物語だと語る。`
+      },
+      {
+        id: `yang_jintian`,
+        name: `杨锦天`,
+        alias: ``,
+        reading: `ヤン・ジンティエン`,
+        cast: `刘家祎`,
+        faction: `civilian`,
+        role: `杨昭の弟`,
+        shortRole: `杨昭の弟`,
+        x: 165,
+        y: 495,
+        isProtagonist: false,
+        summary: `杨昭の弟。泥酔した夜、タクシーに乗ろうとした80代のおばあさんへ席を譲らず、見かねた運転手（陈铭生／江名）と口論・揉み合いになって派出所へ連行された。この騒動で姉の杨昭が駆けつけたことが、陈铭生と杨昭の運命的な出会いの契機となる。`,
+        quoteTitle: `出会いの発端`,
+        quote: `派出所での調停で、陈铭生側が面会を拒み賠償金のみで示談を済ませようとしたことから、杨昭は運転手の正体に強い疑問を抱くようになった。`
+      },
+      {
+        id: `xue_miao`,
+        name: `薛淼`,
+        alias: ``,
+        reading: `シュエ・ミャオ`,
+        cast: `李治廷`,
+        faction: `civilian`,
+        role: `杨昭の関係者・友人`,
+        shortRole: `杨昭の友人・関係者`,
+        x: 165,
+        y: 695,
+        isProtagonist: false,
+        summary: `杨昭の周囲にいる民間人であり、彼女の関係者・友人。裏社会の抗争や潜入捜査の渦に巻き込まれていく杨昭の日常側に位置する存在。`,
+        quoteTitle: `立ち位置`,
+        quote: `南湖で静かに文物修復の仕事を営む杨昭の民間人ネットワークの一人。`
+      },
+      {
+        id: `jiang_qing`,
+        name: `蒋晴`,
+        alias: ``,
+        reading: `ジャン・チン`,
+        cast: `蒋羽熙`,
+        faction: `civilian`,
+        role: `関係者`,
+        shortRole: `杨昭周辺の関係者`,
+        x: 415,
+        y: 750,
+        isProtagonist: false,
+        summary: `杨昭を取り巻く民間人側の関係者。南湖における日常空間と人間関係を構成する人物の一人。`,
+        quoteTitle: `立ち位置`,
+        quote: `主要主人公・杨昭の周辺人物として、物語の民間領域に関わる。`
+      },
+      {
+        id: `yan_zhengtao`,
+        name: `严郑涛`,
+        alias: `严隊`,
+        reading: `イエン・ジョンタオ`,
+        cast: `耿乐`,
+        faction: `police`,
+        role: `陈铭生が「師父」と呼ぶ直属の上司・指導係`,
+        shortRole: `禁毒隊長・陈铭生の師父`,
+        x: 400,
+        y: 130,
+        isProtagonist: false,
+        summary: `陈铭生が18歳の警察学校時代から信頼を寄せ「師父」と呼ぶ直属の上司。1年365日のうち364日を待ち続ける陈铭生の苦悩を最も深く理解し、バー放火事件後には杨昭への証人保護を承認する一方、「守りたいなら距離を置け」と厳しく忠告する。`,
+        quoteTitle: `師弟の約束`,
+        quote: `「この件が終わったら一緒に引退して、昼はタクシーを運転し、夜はスイカ売りの屋台を出そう」と陈铭生と語り合う。`
+      },
+      {
+        id: `lao_xu`,
+        name: `老徐`,
+        alias: `徐処`,
+        reading: `ラオ・シュー`,
+        cast: `刘冠成`,
+        faction: `police`,
+        role: `南湖禁毒支隊の責任者・処長`,
+        shortRole: `南湖禁毒支隊 処長`,
+        x: 160,
+        y: 105,
+        isProtagonist: false,
+        summary: `南湖禁毒支隊を統括する責任者。严郑涛からの紹介で潜入捜査官・陈铭生の報告を受け、省庁および特殊部隊（特警）との連携を調整。防空壕を隠れ蓑にした白吉の新型麻薬製造工場の一網打尽を指揮する。`,
+        quoteTitle: `捜査指揮`,
+        quote: `「白吉一味を一網打尽にしたら、すぐに潜入を解いて隊へ復帰できる」と陈铭生の帰還を保証する。`
+      },
+      {
+        id: `song_hui`,
+        name: `宋辉`,
+        alias: `宋警官`,
+        reading: `ソン・フイ`,
+        cast: `刘显达`,
+        faction: `police`,
+        role: `派出所の警察官`,
+        shortRole: `派出所警察官・調停担当`,
+        x: 160,
+        y: 290,
+        isProtagonist: false,
+        summary: `第1話冒頭のタクシー騒動を担当した派出所の警官。酒気帯びで高齢の女性に席を譲らなかった杨锦天と、潜入中で顔を出せない陈铭生（江名）の間に入り、姉の杨昭に対して双方の責任と示談・賠償金の話をまとめた。`,
+        quoteTitle: `派出所での調停`,
+        quote: `正体を隠さねばならない陈铭生の立場を守りつつ、杨昭に和解書への署名を促した。`
+      },
+      {
+        id: `bai_ji`,
+        name: `白吉`,
+        alias: `白哥・白総`,
+        reading: `バイ・ジー`,
+        cast: `余文乐`,
+        faction: `syndicate`,
+        role: `麻薬密売組織の冷酷なボス`,
+        shortRole: `麻薬組織ボス`,
+        x: 1015,
+        y: 295,
+        isProtagonist: false,
+        summary: `明坤集団の壊滅後は国外に潜伏していたが、再び南湖へ舞い戻り支配を目論む冷酷な麻薬組織の首領。誰も信用しない猜疑心の持ち主で、火鍋店の奥の防空壕に1日最大300kg製造可能な「丧尸药」工場を構え、自ら「親（庄）」に立とうとする。7年前から知る江名（陈铭生）に一時は目にかけるが、常に試練を課す。`,
+        quoteTitle: `組織の掟`,
+        quote: `新たに手に入れた刃物に「老子问天」と名付け、江名に対して「警察だけでなく同業者も身内も警戒しろ」と告げる。`
+      },
+      {
+        id: `bai_weiwei`,
+        name: `白薇薇`,
+        alias: `薇薇姐`,
+        reading: `バイ・ウェイウェイ`,
+        cast: `齐天晴`,
+        faction: `syndicate`,
+        role: `白吉の妹（江名に好意と特別な信頼を寄せる）`,
+        shortRole: `白吉の妹・江名への好意`,
+        x: 795,
+        y: 155,
+        isProtagonist: false,
+        summary: `白吉の実の妹。麻雀卓では連戦連勝して周囲を圧倒する勝気な性格だが、江名（陈铭生）に対しては深い好意と特別な信頼を寄せている。江名が病院へ運ばれたと知れば、彼を狙った刘伟に直談判して「江名は私の人間だ。次に手を出したら殺す」とまで言い放ち、生辰八字入りのお守りを渡す。`,
+        quoteTitle: `一途な庇護`,
+        quote: `「江名は私の人間、彼に手を出すのは私に手を出すのと同じ」——刘伟の報復から江名を守ろうと動く。`
+      },
+      {
+        id: `liu_wei`,
+        name: `刘伟`,
+        alias: `伟哥`,
+        reading: `リウ・ウェイ`,
+        cast: `侯晓`,
+        faction: `syndicate`,
+        role: `白吉の手下（幹部）・江名を激しく敵視`,
+        shortRole: `組織幹部・江名の敵対者`,
+        x: 865,
+        y: 535,
+        isProtagonist: false,
+        summary: `白吉配下の粗暴な幹部。自分の縄張りや倉庫管理を白吉が江名（陈铭生）に任せたことに強い嫉妬と怨恨を抱く。手下の「卷毛」がバーを杨昭に転貸したことで隠していた「4号ヘロイン」回収に失敗し、バーへ放火。さらに偽物にすり替わった貨の責任を巡り、江名と激しく対立する。`,
+        quoteTitle: `組織内の内紛`,
+        quote: `「白吉は最初から俺を評価せず、江名ばかりを重用する」と不満を爆発させ、江名への報復を企てる。`
+      },
+      {
+        id: `wu_jianshan`,
+        name: `吴建山`,
+        alias: `建山`,
+        reading: `ウー・ジエンシャン`,
+        cast: `周政杰`,
+        faction: `syndicate`,
+        role: `江名に命を救われ忠誠を誓う弟分`,
+        shortRole: `江名の直属弟分・忠誠`,
+        x: 665,
+        y: 675,
+        isProtagonist: false,
+        summary: `13歳のとき白吉のもとで初めて運びを行った際、仲間に売られて窮地に陥ったところを江名（陈铭生）に救われた過去を持つ。以来、江名に絶対的な忠誠を誓う弟分として行動を共にし、火災現場周辺の私服警官の動きや杨昭の転居情報などを江名へ逐一報告する。`,
+        quoteTitle: `命の恩人への忠義`,
+        quote: `「13歳のとき救ってくれたのは名哥だけだった。気にかけて当然だろう」と江名の身を案じ続ける。`
+      },
+      {
+        id: `chen_meilu`,
+        name: `陈美露`,
+        alias: `美姐`,
+        reading: `チェン・マイルー`,
+        cast: `徐洁儿`,
+        faction: `external`,
+        role: `沿海地域の麻薬流通ルートを牛耳る女ボス`,
+        shortRole: `沿海流通網の女ボス`,
+        x: 1030,
+        y: 100,
+        isProtagonist: false,
+        summary: `南方沿海地域の麻薬流通ネットワークを掌握する実力者。以前は阎南山と組んでいたが、警察の包囲網が狭まった阎南山を自ら始末して「投名状（忠誠の証）」とし、白吉の代理として交渉に来た江名（陈铭生）を通じて新たな大型取引・提携を迫る。`,
+        quoteTitle: `交渉の条件`,
+        quote: `「ありふれた並の品はいらない。白吉が約束を果たせないなら容赦しない」と冷徹に釘を刺す。`
+      }
+    ];
+
+    const RELATIONSHIPS = [
+      {
+        id: `rel_chen_yang`,
+        from: `chen_mingsheng`,
+        to: `yang_zhao`,
+        label: `運命の惹かれ合い・切ない愛`,
+        directed: false,
+        style: `romance`,
+        colorVar: `var(--faction-protagonist)`,
+        marker: ``,
+        curveOffset: -24,
+        labelOffset: { x: 16, y: 8 },
+        description: `派出所でのすれ違いから始まり、欠けた茶碗の修復（随缘缮）と火災からの救出を経て深く惹かれ合う。互いの孤独を抱えながら、潜入任務ゆえに真実を明かせない切ない愛。`
+      },
+      {
+        id: `rel_chen_yan`,
+        from: `chen_mingsheng`,
+        to: `yan_zhengtao`,
+        label: `師弟・潜入捜査官と上司`,
+        directed: false,
+        style: `police`,
+        colorVar: `var(--faction-police)`,
+        marker: ``,
+        curveOffset: -22,
+        labelOffset: { x: -16, y: 0 },
+        description: `18歳の警校時代からの師弟関係。潜入中の陈铭生を唯一本名で呼び、メンタル面と楊昭の証人保護を支える直属上司。`
+      },
+      {
+        id: `rel_yan_xu`,
+        from: `yan_zhengtao`,
+        to: `lao_xu`,
+        label: `公安禁毒の同僚・指揮官`,
+        directed: false,
+        style: `police`,
+        colorVar: `var(--faction-police)`,
+        marker: ``,
+        curveOffset: -18,
+        labelOffset: { x: 0, y: -14 },
+        description: `南湖禁毒支隊の作戦を統括する徐処長と、現場の潜入捜査官を管轄する严隊長。省庁・特警との合同摘発を調整する。`
+      },
+      {
+        id: `rel_chen_bai`,
+        from: `chen_mingsheng`,
+        to: `bai_ji`,
+        label: `偽りの主従・組織への潜入`,
+        directed: true,
+        style: `undercover`,
+        colorVar: `var(--faction-protagonist)`,
+        marker: `arrow-protagonist`,
+        curveOffset: 16,
+        labelOffset: { x: 0, y: 14 },
+        description: `「江名」として7年越しで信頼を取り戻し、白吉の腹心として組織の中枢と新型麻薬製造工場へ潜入する緊迫の偽装主従関係。`
+      },
+      {
+        id: `rel_bai_weiwei`,
+        from: `bai_ji`,
+        to: `bai_weiwei`,
+        label: `兄妹`,
+        directed: false,
+        style: `family`,
+        colorVar: `var(--faction-syndicate)`,
+        marker: ``,
+        curveOffset: 18,
+        labelOffset: { x: 14, y: -8 },
+        description: `白吉と実妹・白薇薇の血縁関係。白薇薇は兄と江名のために生辰八字入りの平安守りを祈願して贈る。`
+      },
+      {
+        id: `rel_weiwei_chen`,
+        from: `bai_weiwei`,
+        to: `chen_mingsheng`,
+        label: `好意・庇護`,
+        directed: true,
+        style: `affection`,
+        colorVar: `var(--faction-syndicate)`,
+        marker: `arrow-syndicate`,
+        curveOffset: -24,
+        labelOffset: { x: 0, y: -12 },
+        description: `江名（陈铭生）に特別な好意と信頼を寄せる白薇薇が、兄の組織内で江名を庇護し、敌対する刘伟を牽制する一方的な想い。`
+      },
+      {
+        id: `rel_liu_chen`,
+        from: `liu_wei`,
+        to: `chen_mingsheng`,
+        label: `激しい敵対・内紛`,
+        directed: false,
+        style: `hostile`,
+        colorVar: `var(--error)`,
+        marker: ``,
+        curveOffset: 24,
+        labelOffset: { x: -8, y: 12 },
+        description: `白吉の寵愛を江名に奪われたと逆恨みする刘伟が、偽造貨物の擦り付け疑惑やバー放火を巡って江名と激突する組織内の対立。`
+      },
+      {
+        id: `rel_liu_bai`,
+        from: `liu_wei`,
+        to: `bai_ji`,
+        label: `主従`,
+        directed: true,
+        style: `syndicate`,
+        colorVar: `var(--faction-syndicate)`,
+        marker: `arrow-syndicate`,
+        curveOffset: 18,
+        labelOffset: { x: 18, y: 4 },
+        description: `白吉の古参手下・幹部。しかし麻薬回収の失敗により白吉から「3日以内に答えを出せ」と厳しく見限られつつある。`
+      },
+      {
+        id: `rel_wu_chen`,
+        from: `wu_jianshan`,
+        to: `chen_mingsheng`,
+        label: `恩人と弟分・忠誠`,
+        directed: true,
+        style: `loyalty`,
+        colorVar: `var(--faction-protagonist)`,
+        marker: `arrow-protagonist`,
+        curveOffset: 18,
+        labelOffset: { x: 14, y: 6 },
+        description: `13歳の初仕事で仲間に裏切られた際、命を救われて以来、江名を兄貴分と慕い忠誠を尽くす。`
+      },
+      {
+        id: `rel_yang_jintian`,
+        from: `yang_zhao`,
+        to: `yang_jintian`,
+        label: `姉弟`,
+        directed: false,
+        style: `family`,
+        colorVar: `var(--faction-civilian)`,
+        marker: ``,
+        curveOffset: 16,
+        labelOffset: { x: -10, y: 14 },
+        description: `杨昭と弟・杨锦天の姉弟関係。弟が起こした警察沙汰の収拾に駆けつけたことがすべての始まりとなる。`
+      },
+      {
+        id: `rel_jintian_chen`,
+        from: `yang_jintian`,
+        to: `chen_mingsheng`,
+        label: `タクシーでの口論・出会いの契機`,
+        directed: false,
+        style: `encounter`,
+        colorVar: `var(--faction-civilian)`,
+        marker: ``,
+        curveOffset: -20,
+        labelOffset: { x: -12, y: -10 },
+        description: `深夜のタクシー乗車時に80代の老女へ席を譲らなかったことから起きた口論・騒動。姉・杨昭と陈铭生を結びつけた契機。`
+      },
+      {
+        id: `rel_song_jintian`,
+        from: `song_hui`,
+        to: `yang_jintian`,
+        label: `派出所での調停`,
+        directed: true,
+        style: `police`,
+        colorVar: `var(--faction-police)`,
+        marker: `arrow-police`,
+        curveOffset: -16,
+        labelOffset: { x: -18, y: 0 },
+        description: `酒気帯びで騒ぎを起こした杨锦天と姉・杨昭に対し、派出所での示談手続きを行った。`
+      },
+      {
+        id: `rel_song_chen`,
+        from: `song_hui`,
+        to: `chen_mingsheng`,
+        label: `派出所での調停`,
+        directed: true,
+        style: `police`,
+        colorVar: `var(--faction-police)`,
+        marker: `arrow-police`,
+        curveOffset: -28,
+        labelOffset: { x: -6, y: -14 },
+        description: `潜入捜査中のため表に出られない陈铭生（江名）の意向を汲み、相手側との和解書作成を仲介した。`
+      },
+      {
+        id: `rel_bai_meilu`,
+        from: `bai_ji`,
+        to: `chen_meilu`,
+        label: `麻薬取引・提携交渉`,
+        directed: false,
+        style: `syndicate`,
+        colorVar: `var(--faction-external)`,
+        marker: ``,
+        curveOffset: 14,
+        labelOffset: { x: 22, y: 0 },
+        description: `沿海地域の流通網を握る陈美露と、新型「丧尸药」の供給元になろうとする白吉の危険な業務提携交渉。`
+      },
+      {
+        id: `rel_yang_xue`,
+        from: `yang_zhao`,
+        to: `xue_miao`,
+        label: `関係者・友人`,
+        directed: false,
+        style: `civilian`,
+        colorVar: `var(--faction-civilian)`,
+        marker: ``,
+        curveOffset: -14,
+        labelOffset: { x: -14, y: -10 },
+        description: `杨昭の日常側に位置する友人・関係者。`
+      },
+      {
+        id: `rel_yang_jiang`,
+        from: `yang_zhao`,
+        to: `jiang_qing`,
+        label: `関係者`,
+        directed: false,
+        style: `civilian`,
+        colorVar: `var(--faction-civilian)`,
+        marker: ``,
+        curveOffset: 0,
+        labelOffset: { x: 34, y: 0 },
+        description: `杨昭の周囲を取り巻く民間人の関係者。`
+      }
+    ];
+
+    /* Application state */
+    let selectedCharId = `chen_mingsheng`;
+    let activeFaction = `all`;
+    let showEdgeLabels = true;
+    let currentZoom = 1;
+    let panX = 0;
+    let panY = 0;
+    let isPanning = false;
+    let panStartX = 0;
+    let panStartY = 0;
+
+    function getCharById(id) {
+      return CHARACTERS.find(function (c) { return c.id === id; }) || null;
+    }
+
+    function getNodeDimensions(char) {
+      return char.isProtagonist ? { w: 214, h: 96 } : { w: 194, h: 88 };
+    }
+
+    function intersectRectPerimeter(cx, cy, tx, ty, w, h, pad) {
+      const dx = tx - cx;
+      const dy = ty - cy;
+      if (dx === 0 && dy === 0) return { x: cx, y: cy };
+      const hw = w / 2 + pad;
+      const hh = h / 2 + pad;
+      const scaleX = dx !== 0 ? hw / Math.abs(dx) : Infinity;
+      const scaleY = dy !== 0 ? hh / Math.abs(dy) : Infinity;
+      const t = Math.min(scaleX, scaleY);
+      return { x: cx + dx * t, y: cy + dy * t };
+    }
+
+    function computeEdgeGeometry(rel) {
+      const c1 = getCharById(rel.from);
+      const c2 = getCharById(rel.to);
+      if (!c1 || !c2) return null;
+
+      const d1 = getNodeDimensions(c1);
+      const d2 = getNodeDimensions(c2);
+
+      const mx0 = (c1.x + c2.x) / 2;
+      const my0 = (c1.y + c2.y) / 2;
+      const dx = c2.x - c1.x;
+      const dy = c2.y - c1.y;
+      const len = Math.hypot(dx, dy) || 1;
+      const nx = -dy / len;
+      const ny = dx / len;
+
+      const ctrlX = mx0 + nx * (rel.curveOffset || 0);
+      const ctrlY = my0 + ny * (rel.curveOffset || 0);
+
+      const p1 = intersectRectPerimeter(c1.x, c1.y, ctrlX, ctrlY, d1.w, d1.h, 4);
+      const p2 = intersectRectPerimeter(c2.x, c2.y, ctrlX, ctrlY, d2.w, d2.h, 6);
+
+      const labelX = 0.25 * p1.x + 0.5 * ctrlX + 0.25 * p2.x + (rel.labelOffset ? rel.labelOffset.x : 0);
+      const labelY = 0.25 * p1.y + 0.5 * ctrlY + 0.25 * p2.y + (rel.labelOffset ? rel.labelOffset.y : 0);
+
+      return {
+        d: `M ${p1.x.toFixed(1)} ${p1.y.toFixed(1)} Q ${ctrlX.toFixed(1)} ${ctrlY.toFixed(1)} ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`,
+        labelX: labelX,
+        labelY: labelY
+      };
+    }
+
+    function renderGraph() {
+      const edgesGroup = document.getElementById(`edges-group`);
+      const labelsLayer = document.getElementById(`edge-labels-layer`);
+      const nodesLayer = document.getElementById(`nodes-layer`);
+      if (!edgesGroup || !labelsLayer || !nodesLayer) return;
+
+      const svgNS = `http://www.w3.org/2000/svg`;
+      edgesGroup.innerHTML = ``;
+      labelsLayer.innerHTML = ``;
+      nodesLayer.innerHTML = ``;
+
+      /* Render edges and edge label pills */
+      RELATIONSHIPS.forEach(function (rel) {
+        const geom = computeEdgeGeometry(rel);
+        if (!geom) return;
+
+        const path = document.createElementNS(svgNS, `path`);
+        path.setAttribute(`d`, geom.d);
+        path.setAttribute(`class`, `edge-path`);
+        path.setAttribute(`data-rel-id`, rel.id);
+        path.setAttribute(`data-from`, rel.from);
+        path.setAttribute(`data-to`, rel.to);
+        path.style.stroke = rel.colorVar;
+        if (rel.style === `undercover`) {
+          path.style.strokeDasharray = `7 5`;
+        } else if (rel.style === `hostile`) {
+          path.style.strokeDasharray = `4 3`;
+        } else if (rel.style === `civilian`) {
+          path.style.strokeDasharray = `3 4`;
+        }
+        if (rel.directed && rel.marker) {
+          path.setAttribute(`marker-end`, `url(#${rel.marker})`);
+        }
+        edgesGroup.appendChild(path);
+
+        const pill = document.createElement(`button`);
+        pill.type = `button`;
+        pill.className = `edge-label-pill`;
+        pill.setAttribute(`data-rel-id`, rel.id);
+        pill.setAttribute(`data-from`, rel.from);
+        pill.setAttribute(`data-to`, rel.to);
+        pill.style.left = `${geom.labelX.toFixed(1)}px`;
+        pill.style.top = `${geom.labelY.toFixed(1)}px`;
+        pill.style.borderColor = rel.colorVar;
+        pill.textContent = rel.label;
+        pill.setAttribute(`aria-label`, `${getCharById(rel.from).name}と${getCharById(rel.to).name}の関係：${rel.label}`);
+        pill.onclick = function (e) {
+          e.stopPropagation();
+          selectCharacter(rel.from);
+        };
+        labelsLayer.appendChild(pill);
+      });
+
+      /* Render character node cards (strictly NO single-character circular avatars) */
+      CHARACTERS.forEach(function (char) {
+        const faction = FACTIONS[char.faction];
+        const btn = document.createElement(`button`);
+        btn.type = `button`;
+        btn.className = `char-node${char.isProtagonist ? ` is-protagonist` : ``}`;
+        btn.setAttribute(`data-char-id`, char.id);
+        btn.setAttribute(`data-faction`, char.faction);
+        btn.style.left = `${char.x}px`;
+        btn.style.top = `${char.y}px`;
+        btn.setAttribute(`aria-label`, `${char.name}（演：${char.cast}）— ${char.role}`);
+        btn.onclick = function (e) {
+          e.stopPropagation();
+          selectCharacter(char.id);
+        };
+
+        const aliasHtml = char.alias ? `<span class="node-alias">${char.alias}</span>` : ``;
+        btn.innerHTML = `
+          <div class="node-top-row">
+            <span class="node-faction-tag">${faction.label}</span>
+            <span class="node-cast-badge">演：${char.cast}</span>
+          </div>
+          <div class="node-name-row">
+            <span class="node-name">${char.name}</span>
+            ${aliasHtml}
+          </div>
+          <div class="node-role">${char.shortRole}</div>
+        `;
+        nodesLayer.appendChild(btn);
+      });
+    }
+
+    function renderQuickStrip() {
+      const strip = document.getElementById(`quick-strip`);
+      if (!strip) return;
+      strip.innerHTML = ``;
+      CHARACTERS.forEach(function (char) {
+        const faction = FACTIONS[char.faction];
+        const btn = document.createElement(`button`);
+        btn.type = `button`;
+        btn.className = `quick-chip`;
+        btn.setAttribute(`data-char-id`, char.id);
+        btn.onclick = function () { selectCharacter(char.id); };
+        btn.innerHTML = `
+          <span class="faction-swatch" style="background: ${faction.colorVar};"></span>
+          <span>${char.name}</span>
+          <span class="count-pill">演:${char.cast}</span>
+        `;
+        strip.appendChild(btn);
+      });
+    }
+
+    function renderRoster() {
+      const grid = document.getElementById(`roster-grid`);
+      if (!grid) return;
+      grid.innerHTML = ``;
+      CHARACTERS.forEach(function (char) {
+        const faction = FACTIONS[char.faction];
+        const card = document.createElement(`button`);
+        card.type = `button`;
+        card.className = `roster-card`;
+        card.setAttribute(`data-char-id`, char.id);
+        card.onclick = function () {
+          selectCharacter(char.id);
+          const well = document.getElementById(`observation-well`);
+          if (well) well.scrollIntoView({ behavior: `smooth`, block: `nearest` });
+        };
+        const aliasPart = char.alias ? ` ／ ${char.alias}` : ``;
+        card.innerHTML = `
+          <div class="roster-head">
+            <div>
+              <span class="faction-pill" style="color: ${faction.colorVar}; background: ${faction.bgVar}; border-color: ${faction.borderVar};">
+                <span class="faction-swatch" style="background: ${faction.colorVar};"></span>
+                ${faction.label}
+              </span>
+              <div class="roster-name" style="margin-top: var(--space-xs);">${char.name}${aliasPart}</div>
+            </div>
+            <span class="roster-cast">演：${char.cast}</span>
+          </div>
+          <p class="roster-desc">${char.role}</p>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function renderDossier() {
+      const container = document.getElementById(`dossier-content`);
+      if (!container) return;
+
+      if (!selectedCharId) {
+        const factionCounts = Object.keys(FACTIONS).map(function (key) {
+          const f = FACTIONS[key];
+          const members = CHARACTERS.filter(function (c) { return c.faction === key; });
+          return `
+            <div class="connection-item" style="cursor: pointer;" onclick="setFactionFilter('${key}')">
+              <div class="conn-head">
+                <span class="conn-target" style="color: ${f.colorVar};">${f.label}</span>
+                <span class="conn-rel-badge">${members.length}名</span>
+              </div>
+              <div class="conn-desc">${members.map(function (m) { return `${m.name}（演：${m.cast}）`; }).join(` ・ `)}</div>
+            </div>
+          `;
+        }).join(``);
+
+        container.innerHTML = `
+          <div class="dossier-header">
+            <div class="coord-label">OVERVIEW · NANHU ARCHIVE</div>
+            <h2 class="dossier-name">人物未選択（全体相関モード）</h2>
+            <p class="dossier-summary" style="margin-top: var(--space-xs);">
+              左側の相関図から任意の人物カードをクリックすると、その人物の詳細な設定・立ち位置・関係者との繋がりがここに表示されます。
+            </p>
+          </div>
+          <div>
+            <h3 class="dossier-section-title">勢力別インデックス（クリックでハイライト）</h3>
+            <div class="connections-list">${factionCounts}</div>
+          </div>
+        `;
+        return;
+      }
+
+      const char = getCharById(selectedCharId);
+      if (!char) return;
+      const faction = FACTIONS[char.faction];
+
+      const connectedRels = RELATIONSHIPS.filter(function (r) {
+        return r.from === char.id || r.to === char.id;
+      });
+
+      const connectionsHtml = connectedRels.map(function (rel) {
+        const isOutgoing = rel.from === char.id;
+        const otherId = isOutgoing ? rel.to : rel.from;
+        const other = getCharById(otherId);
+        if (!other) return ``;
+        const dirSymbol = rel.directed ? (isOutgoing ? `→` : `←`) : `⇄`;
+        const otherAlias = other.alias ? ` (${other.alias})` : ``;
+        return `
+          <button type="button" class="connection-item" onclick="selectCharacter('${other.id}')">
+            <div class="conn-head">
+              <span class="conn-target">${dirSymbol} ${other.name}${otherAlias}<span class="conn-cast">演：${other.cast}</span></span>
+              <span class="conn-rel-badge" style="border-color: ${rel.colorVar}; color: ${rel.colorVar};">${rel.label}</span>
+            </div>
+            <div class="conn-desc">${rel.description}</div>
+          </button>
+        `;
+      }).join(``);
+
+      const aliasBadge = char.alias ? `<span class="alias-tag">${char.alias}</span>` : ``;
+
+      container.innerHTML = `
+        <div class="dossier-header">
+          <div class="dossier-top-meta">
+            <span class="faction-pill" style="color: ${faction.colorVar}; background: ${faction.bgVar}; border-color: ${faction.borderVar};">
+              <span class="faction-swatch" style="background: ${faction.colorVar};"></span>
+              ${faction.label}
+            </span>
+            <span class="count-pill">接続 ${connectedRels.length}件</span>
+          </div>
+          <h2 class="dossier-name">${char.name}</h2>
+          <div class="dossier-reading">${char.reading} ／ ${char.role}</div>
+          <div class="dossier-cast-row">
+            <span class="cast-tag">演：${char.cast}</span>
+            ${aliasBadge}
+          </div>
+        </div>
+
+        <div>
+          <h3 class="dossier-section-title">立ち位置・設定</h3>
+          <p class="dossier-summary">${char.summary}</p>
+        </div>
+
+        <div class="dossier-quote">
+          <strong>${char.quoteTitle}</strong>
+          <span>${char.quote}</span>
+        </div>
+
+        <div>
+          <h3 class="dossier-section-title">関係者との繋がり（クリックで移動）</h3>
+          <div class="connections-list">${connectionsHtml}</div>
+        </div>
+      `;
+    }
+
+    function updateVisualState() {
+      const neighborIds = new Set();
+      const activeRelIds = new Set();
+
+      if (selectedCharId) {
+        neighborIds.add(selectedCharId);
+        RELATIONSHIPS.forEach(function (rel) {
+          if (rel.from === selectedCharId || rel.to === selectedCharId) {
+            activeRelIds.add(rel.id);
+            neighborIds.add(rel.from);
+            neighborIds.add(rel.to);
+          }
+        });
+      }
+
+      /* Update nodes */
+      document.querySelectorAll(`.char-node`).forEach(function (node) {
+        const id = node.getAttribute(`data-char-id`);
+        const faction = node.getAttribute(`data-faction`);
+        node.classList.remove(`is-selected`, `is-neighbor`, `is-dimmed`);
+
+        if (selectedCharId) {
+          if (id === selectedCharId) {
+            node.classList.add(`is-selected`);
+          } else if (neighborIds.has(id)) {
+            node.classList.add(`is-neighbor`);
+          } else {
+            node.classList.add(`is-dimmed`);
+          }
+        } else if (activeFaction !== `all`) {
+          if (faction !== activeFaction) {
+            node.classList.add(`is-dimmed`);
+          }
+        }
+      });
+
+      /* Update edges */
+      document.querySelectorAll(`.edge-path`).forEach(function (path) {
+        const relId = path.getAttribute(`data-rel-id`);
+        const fromChar = getCharById(path.getAttribute(`data-from`));
+        const toChar = getCharById(path.getAttribute(`data-to`));
+        path.classList.remove(`is-highlighted`, `is-dimmed`);
+
+        if (selectedCharId) {
+          if (activeRelIds.has(relId)) {
+            path.classList.add(`is-highlighted`);
+          } else {
+            path.classList.add(`is-dimmed`);
+          }
+        } else if (activeFaction !== `all`) {
+          const matchesFaction = (fromChar && fromChar.faction === activeFaction) || (toChar && toChar.faction === activeFaction);
+          if (matchesFaction) {
+            path.classList.add(`is-highlighted`);
+          } else {
+            path.classList.add(`is-dimmed`);
+          }
+        }
+      });
+
+      /* Update edge label pills */
+      document.querySelectorAll(`.edge-label-pill`).forEach(function (pill) {
+        const relId = pill.getAttribute(`data-rel-id`);
+        const fromChar = getCharById(pill.getAttribute(`data-from`));
+        const toChar = getCharById(pill.getAttribute(`data-to`));
+        pill.classList.remove(`is-highlighted`, `is-dimmed`);
+
+        if (selectedCharId) {
+          if (activeRelIds.has(relId)) {
+            pill.classList.add(`is-highlighted`);
+          } else {
+            pill.classList.add(`is-dimmed`);
+          }
+        } else if (activeFaction !== `all`) {
+          const matchesFaction = (fromChar && fromChar.faction === activeFaction) || (toChar && toChar.faction === activeFaction);
+          if (matchesFaction) {
+            pill.classList.add(`is-highlighted`);
+          } else {
+            pill.classList.add(`is-dimmed`);
+          }
+        }
+      });
+
+      /* Update quick chips & roster cards */
+      document.querySelectorAll(`.quick-chip, .roster-card`).forEach(function (el) {
+        const id = el.getAttribute(`data-char-id`);
+        el.classList.toggle(`is-active`, id === selectedCharId);
+        el.classList.toggle(`is-selected`, id === selectedCharId);
+      });
+
+      /* Update filter buttons */
+      document.querySelectorAll(`.filter-btn`).forEach(function (btn) {
+        btn.classList.toggle(`is-active`, btn.getAttribute(`data-faction`) === activeFaction);
+      });
+    }
+
+    function selectCharacter(charId) {
+      selectedCharId = charId;
+      updateVisualState();
+      renderDossier();
+    }
+
+    function clearSelection() {
+      selectedCharId = null;
+      activeFaction = `all`;
+      updateVisualState();
+      renderDossier();
+    }
+
+    function setFactionFilter(factionId) {
+      activeFaction = factionId;
+      if (factionId !== `all`) {
+        selectedCharId = null;
+      }
+      updateVisualState();
+      renderDossier();
+    }
+
+    function toggleEdgeLabels() {
+      showEdgeLabels = !showEdgeLabels;
+      const layer = document.getElementById(`edge-labels-layer`);
+      const btn = document.getElementById(`toggle-labels-btn`);
+      if (layer) layer.classList.toggle(`labels-hidden`, !showEdgeLabels);
+      if (btn) btn.classList.toggle(`is-toggled`, showEdgeLabels);
+    }
+
+    /* Stage pan & zoom */
+    function applyTransform() {
+      const stage = document.getElementById(`graph-stage`);
+      const readout = document.getElementById(`zoom-readout`);
+      if (stage) {
+        stage.style.transform = `translate(${panX.toFixed(1)}px, ${panY.toFixed(1)}px) scale(${currentZoom.toFixed(3)})`;
+      }
+      if (readout) {
+        readout.textContent = `${Math.round(currentZoom * 100)}%`;
+      }
+    }
+
+    function fitGraph() {
+      const well = document.getElementById(`observation-well`);
+      if (!well) return;
+      const w = well.clientWidth || 960;
+      const h = well.clientHeight || 660;
+      const scaleX = w / 1200;
+      const scaleY = h / 840;
+      currentZoom = Math.max(0.35, Math.min(1.1, Math.min(scaleX, scaleY) * 0.96));
+      panX = (w - 1200 * currentZoom) / 2;
+      panY = (h - 840 * currentZoom) / 2;
+      applyTransform();
+    }
+
+    function adjustZoom(delta) {
+      const well = document.getElementById(`observation-well`);
+      if (!well) return;
+      const prevZoom = currentZoom;
+      const nextZoom = Math.max(0.35, Math.min(1.75, currentZoom + delta));
+      const cx = well.clientWidth / 2;
+      const cy = well.clientHeight / 2;
+      panX = cx - (cx - panX) * (nextZoom / prevZoom);
+      panY = cy - (cy - panY) * (nextZoom / prevZoom);
+      currentZoom = nextZoom;
+      applyTransform();
+    }
+
+    function initInteractions() {
+      const well = document.getElementById(`observation-well`);
+      if (!well) return;
+
+      well.addEventListener(`pointerdown`, function (e) {
+        if (e.target.closest(`.char-node`) || e.target.closest(`.edge-label-pill`)) return;
+        isPanning = true;
+        panStartX = e.clientX - panX;
+        panStartY = e.clientY - panY;
+        well.classList.add(`is-panning`);
+      });
+
+      window.addEventListener(`pointermove`, function (e) {
+        if (!isPanning) return;
+        panX = e.clientX - panStartX;
+        panY = e.clientY - panStartY;
+        applyTransform();
+      });
+
+      window.addEventListener(`pointerup`, function () {
+        if (!isPanning) return;
+        isPanning = false;
+        well.classList.remove(`is-panning`);
+      });
+
+      well.addEventListener(`wheel`, function (e) {
+        e.preventDefault();
+        const delta = e.deltaY < 0 ? 0.1 : -0.1;
+        const rect = well.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        const prevZoom = currentZoom;
+        const nextZoom = Math.max(0.35, Math.min(1.75, currentZoom + delta));
+        panX = mx - (mx - panX) * (nextZoom / prevZoom);
+        panY = my - (my - panY) * (nextZoom / prevZoom);
+        currentZoom = nextZoom;
+        applyTransform();
+      }, { passive: false });
+
+      if (window.ResizeObserver) {
+        const ro = new ResizeObserver(function () {
+          fitGraph();
+        });
+        ro.observe(well);
+      }
+
+      window.addEventListener(`keydown`, function (e) {
+        if (e.key === `Escape`) {
+          clearSelection();
+        }
+      });
+    }
+
+    document.addEventListener(`DOMContentLoaded`, function () {
+      renderGraph();
+      renderQuickStrip();
+      renderRoster();
+      updateVisualState();
+      renderDossier();
+      fitGraph();
+      initInteractions();
+      if (window.lucide && typeof window.lucide.createIcons === `function`) {
+        window.lucide.createIcons();
+      }
+    });
+  </script>
+</body>
+</html>
